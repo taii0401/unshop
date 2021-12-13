@@ -15,8 +15,8 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">會員管理</a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="/user/user_data/edit_password">修改密碼</a>
-                            <a class="dropdown-item" href="/user/user_data/edit">會員資料</a>
+                            <a class="dropdown-item" href="/users/edit_password">修改密碼</a>
+                            <a class="dropdown-item" href="/users/edit">會員資料</a>
                         </div>
                     </li>
                     <li class="nav-item">
@@ -25,17 +25,17 @@
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        @isset($username)
-                            <a class="nav-link d-flex" href="/user/logout">
+                        @if(UserAuth::isLoggedIn())
+                            <a class="nav-link d-flex" href="/users/logout">
                                 <i class="far fa-user mr-2 tm-logout-icon"></i>
-                                <span>{{ $username }}  登出</span>
+                                <span>{{ UserAuth::userdata()->name }}  登出</span>
                             </a>
                         @else
-                            <a class="nav-link d-flex" href="/user/login">
+                            <a class="nav-link d-flex" href="/users">
                                 <i class="far fa-user mr-2 tm-logout-icon"></i>
                                 <span>登入</span>
                             </a>
-                        @endisset
+                        @endif
                     </li>
                 </ul>
             </div>
