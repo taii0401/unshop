@@ -2,7 +2,7 @@
     "/css/app.css": "/css/app.css?id=d41d8cd98f00b204e980",
     "/css/bootstrap-datepicker.css": "/css/bootstrap-datepicker.css?id=10d9559b4f1107aa3674",
     "/css/bootstrap.min.css": "/css/bootstrap.min.css?id=62907ef14a08ac2199b6",
-    "/css/fontawesome.min.css": "/css/fontawesome.min.css?id=46ee5b0c32c2b0c3a005",
+    "/css/fontawesome.min.css": "/css/fontawesome.min.css?id=e1e8bcc52746e36cf559",
     "/css/tooplate.css": "/css/tooplate.css?id=b5cfb776a34369038fda",
     "/img/dash-bg-01.jpg": "/img/dash-bg-01.jpg?id=d1b5f45ffadee045fed2",
     "/img/dash-bg-02.jpg": "/img/dash-bg-02.jpg?id=0069e132202c39e488fc",
@@ -15,8 +15,8 @@
     "/js/bootstrap-datepicker.zh-TW.min.js": "/js/bootstrap-datepicker.zh-TW.min.js?id=3a09110ad5349b81fe7f",
     "/js/bootstrap.js": "/js/bootstrap.js?id=68164737c41fca17fe10",
     "/js/bootstrap.min.js": "/js/bootstrap.min.js?id=e47a9d976663a4ce4db5",
-    "/js/common.js": "/js/common.js?id=5da9de9881ef8922b6bc",
-    "/js/jquery-3.3.1.min.js": "/js/jquery-3.3.1.min.js?id=a46fb81762396b7bf202",
+    "/js/common.js": "/js/common.js?id=078faf4d6b6cd3733ecf",
+    "/js/jquery-3.6.0.min.js": "/js/jquery-3.6.0.min.js?id=3e4bb227fb55271bfe9c",
     "/js/popper.min.js": "/js/popper.min.js?id=e01684c4d1a19ab7e2b3",
     "/js/tooplate-scripts.js": "/js/tooplate-scripts.js?id=0a0ed698f4774c6fa00b"
 }

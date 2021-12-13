@@ -15,6 +15,12 @@ function getCookie(name) {
     return cookieValue;
 }
 
+//取得Token
+function getToken() {
+    var csrf_token = $('meta[name="csrf-token"]').attr('content');
+    return csrf_token;
+}
+
 //跳轉頁面
 function changeForm(url) {
     if(url != '') {
@@ -98,7 +104,7 @@ function removeArray(arr) {
 //上傳檔案
 function uploadFile() {
     $('#drag-and-drop-zone').dmUploader({ 
-        url: '/user/ajax_upload/',
+        url: '/ajax/upload_file/',
         maxFileSize: 3000000, //檔案限制大小-3Megs
         extFilter: ['jpg','jpeg','png'], //允許的檔案字尾名
         onDragEnter: function() {
@@ -160,16 +166,16 @@ function deleteFile(id,type) {
     }
 
     //取得csrf_token
-    var csrf_token = getCookie('csrftoken');
+    var csrf_token = getToken();
     //刪除上傳顯示檔案block
     $('#uploaderFile'+id).remove();
     if(type == 'add') { //新增時，尚未存至資料表(proweb_file_data)，因此直接刪除
         //刪除實際路徑
         $.ajax({
             type: 'POST',
-            url: '/user/ajax_upload_delete/',
+            url: '/ajax/upload_file_delete/',
             dataType: 'json',
-            data: {csrfmiddlewaretoken : csrf_token,file_id : id},
+            data: {'_token' : csrf_token,file_id : id},
             error: function(xhr) {
                 //console.log(xhr);
                 alert('傳送錯誤！');
@@ -303,61 +309,63 @@ function showMsg(div_msg,message,isShowMsg) {
 //檢查帳號是否存在
 function userExist(username) {
     //取得csrf_token
-    var csrf_token = getCookie('csrftoken');
+    var csrf_token = getToken();
+    isSuccess = false;
     $.ajax({
         type: 'POST',
-        url: '/user/ajax_user_exist/',
+        url: '/ajax/user_exist/',
         dataType: 'json',
-        data: {csrfmiddlewaretoken : csrf_token,username : username},
+        async: false,
+        data: {'_token' : csrf_token,username : username},
         error: function(xhr) {
             //console.log(xhr);
             alert('傳送錯誤！');
-            return false;
         },
         success: function(response) {
             //console.log(response);
             if(response.error == false) {
                 showMsg('msg_success',response.message,true);
-                return true;
+                isSuccess = true;
             } else if(response.error == true) {
                 showMsg('msg_error',response.message,true);
-                return false;
             } else {
                 alert('傳送錯誤！');
-                return false;
             }
         }
     });
+
+    return isSuccess;
 }
 
 //檢查商品頁面網址是否存在
 function userLinkExist(short_link) {
     //取得csrf_token
-    var csrf_token = getCookie('csrftoken');
+    var csrf_token = getToken();
+    isSuccess = false;
     $.ajax({
         type: 'POST',
-        url: '/user/ajax_user_link_exist/',
+        url: '/ajax/user_link_exist/',
         dataType: 'json',
-        data: {csrfmiddlewaretoken : csrf_token,short_link : short_link},
+        async: false,
+        data: {'_token' : csrf_token,short_link : short_link},
         error: function(xhr) {
             //console.log(xhr);
             alert('傳送錯誤！');
-            return false;
         },
         success: function(response) {
             //console.log(response);
             if(response.error == false) {
                 showMsg('msg_success',response.message,true);
-                return true;
+                isSuccess = true;
             } else if(response.error == true) {
                 showMsg('msg_error',response.message,true);
-                return false;
             } else {
                 alert('傳送錯誤！');
-                return false;
             }
         }
     });
+
+    return isSuccess;
 }
 
 //忘記密碼
@@ -367,36 +375,35 @@ function userForget() {
 		return false;
 	}
 
+    isSuccess = false;
     $.ajax({
         type: 'POST',
-        url: '/user/ajax_user_forget/',
+        url: '/ajax/user_forget/',
         dataType: 'json',
+        async: false,
         data: $('#form_data').serialize(),
         error: function(xhr) {
             //console.log(xhr);
             alert('傳送錯誤！');
-            return false;
         },
         success: function(response) {
             //console.log(response);
             if(response.error == false) {
-                $('#msg_error').css('display','none');
                 showMsg('msg_success',response.message,true);
-                return true;
+                isSuccess = true;
             } else if(response.error == true) {
-                $('#msg_success').css('display','none');
                 showMsg('msg_error',response.message,true);
-                return false;
             } else {
                 alert('傳送錯誤！');
-                return false;
             }
         }
     });
+
+    return isSuccess;
 }
 
 //送出-使用者資料
-function userSubmit(action_type) {
+function userSubmit(action_type) {    
     $('#action_type').val(action_type);
     //檢查必填
     if(checkRequiredClass('require',true) == false) {
@@ -426,6 +433,7 @@ function userSubmit(action_type) {
             if(checkFormat('en_number',$('#short_link').val(),100,true) == false) {
                 return false;
             }
+            
             //檢查商品頁面網址是否存在
             if(userLinkExist($('#short_link').val()) == false) {
                 return false;
@@ -449,8 +457,9 @@ function userSubmit(action_type) {
 
     $.ajax({
         type: 'POST',
-        url: '/user/ajax_user_data/',
+        url: '/ajax/user_data/',
         dataType: 'json',
+        async: false,
         data: $('#form_data').serialize(),
         error: function(xhr) {
             //console.log(xhr);
@@ -462,15 +471,16 @@ function userSubmit(action_type) {
             if(response.error == false) {
                 if(action_type == 'add') { //新增
                     alert("申請成功！");
-                    changeForm('/user/login');
+                    changeForm('/users');
                 } else if(action_type == 'edit') { //編輯-使用者資料
-                    changeForm('/user/user_data/edit');
+                    alert("修改成功！");
+                    changeForm('/users/edit');
                 } else if(action_type == 'edit_password') { //編輯-密碼
                     alert("修改成功，請重新登入！");
-                    changeForm('/user/logout');
+                    changeForm('/users/logout');
                 } else if(action_type == 'delete') { //刪除
                     alert("刪除成功！");
-                    changeForm('/user/logout');
+                    changeForm('/users/logout');
                 }
             } else if(response.error == true) {
                 showMsg('msg_error',response.message,true);
@@ -509,6 +519,7 @@ function productSubmit(action_type) {
         type: 'POST',
         url: '/product/ajax_product_data/',
         dataType: 'json',
+        async: false,
         data: $('#form_data').serialize(),
         error: function(xhr) {
             //console.log(xhr);
