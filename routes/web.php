@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AjaxController;
+use App\Http\Controllers\FrontController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 
@@ -39,6 +40,10 @@ Route::get('/users/edit_password', [UserController::class, 'edit_password']);
 //登入-送出
 Route::post('/users/login', [UserController::class, 'login'])->name("users.login");
 
+//我的頁面
+Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
+//我的頁面-商品檢視
+Route::get('/fronts/product_view', [FrontController::class, 'product_view']);
 
 
 //Route::get('/users', UserController::class);
