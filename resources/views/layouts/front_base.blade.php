@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title')</title>
     <!-- font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600">
@@ -22,7 +23,7 @@
         @include('layouts.footer')
     </div>
 </body>
-<script src="{{ mix('js/jquery-3.3.1.min.js') }}"></script>
+<script src="{{ mix('js/jquery-3.6.0.min.js') }}"></script>
 <script src="{{ mix('js/popper.min.js') }}"></script>
 <script src="{{ mix('js/bootstrap.min.js') }}"></script>
 <script src="{{ mix('js/common.js') }}"></script>
