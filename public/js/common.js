@@ -40,7 +40,7 @@ function getSearchUrl(path,is_return=false) {
             if(i == 0) {
                 url += '?';
             } else {
-                url += ';';
+                url += '&';
             }
             url += input_id+'='+input_value;
             i++;
