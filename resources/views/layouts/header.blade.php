@@ -20,7 +20,7 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/product/product_list">商品管理</a>
+                        <a class="nav-link" href="/products/product_list">商品管理</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
