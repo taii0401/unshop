@@ -16,8 +16,12 @@ const mix = require('laravel-mix');
         //
     ]);*/
 
-mix.copyDirectory('resources/css', 'public/css')
+mix.js('resources/packages/ckeditor/ckeditor-init.js', 'public/packages/ckeditor/ckeditor-init.js')
+    .js('resources/packages/ckeditor/ckeditor/ckeditor.js', 'public/packages/ckeditor/ckeditor/ckeditor.js')
+    .copyDirectory('resources/css', 'public/css')
     .copyDirectory('resources/img', 'public/img')
     .copyDirectory('resources/js', 'public/js')
     .copyDirectory('resources/packages', 'public/packages')
+    .copyDirectory('resources/packages/upload', 'public/packages/upload')
+    .copyDirectory('resources/packages/webfonts', 'public/packages/webfonts')
     .version()
