@@ -101,9 +101,13 @@
                             <div class="wrapper"> 
                                 <div id="show-area"> 
                                     <ul>
-                                        @foreach($file_datas as $file_data)
-                                        <li><img src="/media/{{ @$file_data }}/{{ @$file_data }}" width="450" height="400"></li>
-                                        @endforeach
+                                        @if(isset($assign_data["file_datas"]))
+                                            @foreach($assign_data["file_datas"] as $key => $val)
+                                            <li><img src="{{ @$val["url"] }}" width="450" height="400"></li>
+                                            {{ @$val["url"] }}
+                                            @endforeach
+                                        @endif
+                                        <li><img src="/storage/app/public/files/1/b6baddd1_20211230203852.jpg" width="450" height="400"></li>
                                     </ul>
                                     <div id="button-left" title="上一張"><</div>
                                     <div id="button-right" title="下一張">></div>
@@ -115,7 +119,9 @@
                             <table class="table-detail">
                                 <thead>
                                     <tr>
-                                        <td class="detail-title" style="width:150px;">產品編號：</td>
+                                        <td class="detail-title" style="width:150px;">
+                                        <img src="url('storage/files/1/b6baddd1_20211230203852.jpg')" width="450" height="400">
+                                        產品編號：</td>
                                         <td class="detail-text">{{ @$assign_data["serial"] }}</td>
                                     </tr>
                                     <tr>

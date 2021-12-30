@@ -68,9 +68,11 @@
                             排序
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            @foreach($orderby_datas as $orderby_key => $orderby_val) 
-                            <a class="dropdown-item @if($assign_data["orderby"] == $orderby_key) active @endif" href="#" onclick="$('#orderby').val('{{ @$orderby_key }}');getSearchUrl('{{ @$assign_data["search_link"] }}');">{{ @$orderby_val }}</a>
-                            @endforeach
+                            @if(isset($option_datas["orderby"]))    
+                                @foreach($option_datas["orderby"] as $key => $val) 
+                                <a class="dropdown-item @if($assign_data["orderby"] == $key) active @endif" href="#" onclick="$('#orderby').val('{{ @$key }}');getSearchUrl('{{ @$assign_data["search_link"] }}');">{{ @$val }}</a>
+                                @endforeach
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -89,7 +91,7 @@
                     <div class="media">
                         <div style="width:180px; height:200px; margin-right:30px;">
                             @if(isset($data["file_path"]) && $data["file_path"] != "")
-                            <img src="{{ $data["file_path"] }}" width="180px" height="200px">
+                            <img src="{{ @$data["file_path"] }}" width="180px" height="200px">
                             @endif
                         </div>
                         <div class="media-body tm-bg-gray">

@@ -3,18 +3,22 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+//Model
 use App\Models\UnshopUser;
 use App\Models\UnshopProduct;
-use Illuminate\Support\Arr;
 
 class FrontController extends Controller
 {
     //我的頁面
     public function my_page(Request $request,$short_link="") 
     {
-        $assign_data = array();
-        $page_link = "/fronts/my_page/".$short_link;
+        if($short_link == "") {
+            //使用者登入
+            return redirect("users/");
+        }
+
+        $assign_data = $conds = array();
+        $search_link = "/fronts/my_page/".$short_link;
         $search_get_url = "";
         //取得目前頁數及搜尋條件
         $search_datas = array("page","keywords","orderby");
@@ -22,14 +26,20 @@ class FrontController extends Controller
             if($request->has($search_data)) {
                 ${$search_data} = $request->input($search_data); //取得搜尋條件的值
                 $assign_data[$search_data] = ${$search_data}; //顯示資料
-                //加入搜尋連結
-                if($search_data != "page") {
-                    if($search_get_url == "") {
-                        $search_get_url .= "?";
-                    } else {
-                        $search_get_url .= "&";
+                if(${$search_data} != "") {
+                    //搜尋條件
+                    if(in_array($search_data,array("keywords"))) {
+                        $conds[$search_data] = ${$search_data};
                     }
-                    $search_get_url .= $search_data."=".${$search_data};
+                    //加入搜尋連結
+                    if($search_data != "page") {
+                        if($search_get_url == "") {
+                            $search_get_url .= "?";
+                        } else {
+                            $search_get_url .= "&";
+                        }
+                        $search_get_url .= $search_data."=".${$search_data};
+                    }
                 }
             } else {
                 //預設目前頁數和排序
@@ -38,7 +48,7 @@ class FrontController extends Controller
                 } else if($search_data == "orderby") {
                     ${$search_data} = "asc_serial";
                 } else {
-                    continue;
+                    ${$search_data} = "";
                 }
 
                 $assign_data[$search_data] = ${$search_data}; //顯示資料
@@ -47,15 +57,13 @@ class FrontController extends Controller
 
         //顯示資料
         $assign_data["short_link"] = $short_link;
-        $assign_data["search_link"] = $page_link;
+        $assign_data["search_link"] = $search_link;
         $assign_data["search_get_url"] = $search_get_url;
 
-        //選項-排序
-        $orderby_datas = array();
-        $orderby_datas["asc_serial"] = "編號 小 ~ 大";
-        $orderby_datas["desc_serial"] = "編號 大 ~ 小";
-        $orderby_datas["asc_sales"] = "售價 小 ~ 大";
-        $orderby_datas["desc_sales"] = "售價 大 ~ 小";
+        //選項
+        $option_datas = array();
+        //排序
+        $option_datas["orderby"] = $this->getOptions("product_orderby");
         
 
         //取得使用者ID
@@ -71,20 +79,9 @@ class FrontController extends Controller
         $datas = array();
         if($user_id > 0) {
             //取得商品資料
-            $conds = array();
             $conds["user_id"] = $user_id;
             $conds["is_delete"] = 0;
             $conds["is_display"] = 1;
-            $all_datas = UnshopProduct::where($conds);
-            //關鍵字
-            if(isset($keywords) && $keywords != "") {
-                $conds_or = array("name","serial");
-                $all_datas = $all_datas->where(function ($query) use($conds_or,$keywords) {
-                    foreach($conds_or as $value) {
-                        $query->orWhere($value,"like","%".$keywords."%");
-                    }
-                });
-            }
             //排序
             $orderby_sort = "asc";
             $orderby_col = "serial";
@@ -93,36 +90,27 @@ class FrontController extends Controller
                 $orderby_sort = isset($str[0])?$str[0]:$orderby_sort;
                 $orderby_col = isset($str[1])?$str[1]:$orderby_col;
             }
-            $all_datas = $all_datas->orderBy($orderby_col,$orderby_sort);
-            //print_r($all_datas->toSql());
-
-            //取得分頁
-            $page_data = $this->getPage($page_link,$page,$all_datas);
-            $page_data["search_get_url"] = str_replace("?","&",$search_get_url);
+            //分頁條件
+            $page_conds = array("search_link" => $search_link,"page" => $page);
+            //取得商品資料
+            $all_datas = $this->getProductData($conds,$orderby_col,$orderby_sort,true,$page_conds);
             //分頁資料
-            $list_data = isset($page_data["list_data"])?$page_data["list_data"]:array();
-            if(!empty($list_data)) {
-                foreach($list_data as $key => $val) {
-                    $data = array();
-                    $data = $val;
-                    //取得圖片(未完成)
-
-                    $datas[] = $data;
-                }
-            }
+            $page_data = isset($all_datas["page_data"])?$all_datas["page_data"]:array();
+            //列表資料
+            $datas = isset($all_datas["list_data"])?$all_datas["list_data"]:array();
         }
 
-        return view("fronts.my_page",["assign_data" => $assign_data,"orderby_datas" => $orderby_datas,"datas" => $datas,"page_data" => $page_data]);
+        return view("fronts.my_page",["assign_data" => $assign_data,"option_datas" => $option_datas,"datas" => $datas,"page_data" => $page_data]);
     }
 
     //商品檢視
     public function product_view(Request $request)
     {
-        $assign_data = $file_datas = array();
+        $assign_data = array();
         //標題
         $assign_data["title_txt"] = "商品明細";
         //短網址
-        $short_link = $request->has("short_link")?$request->input("short_link"):""; 
+        $short_link = $request->has("short_link")?$request->input("short_link"):"";
         $assign_data["short_link"] = $short_link;
         //商品UUID
         $uuid = $request->has("uuid")?$request->input("uuid"):""; 
@@ -130,17 +118,19 @@ class FrontController extends Controller
 
         if($short_link != "" && $uuid != "") {
             //取得商品資料
-            $product = UnshopProduct::where(["uuid" => $uuid])->first()->toArray();
-            if(!empty($product)) {
-                foreach($product as $key => $val) {
+            $all_datas = $this->getProductData(array("uuid" => $uuid));
+            //資料
+            //資料
+            if(isset($all_datas["list_data"][0])) {
+                foreach($all_datas["list_data"][0] as $key => $val) {
                     $assign_data[$key] = $val;
-                    //取得圖片(未完成)
-
-                    
                 }
             }
-        }
+            //$this->pr($assign_data);exit;
+            //檔案
+            $assign_data["file_datas"] = isset($assign_data["file_datas"])?$assign_data["file_datas"]:array();
+        }        
         
-        return view("fronts.product_view",["assign_data" => $assign_data,"file_datas" => $file_datas]);
+        return view("fronts.product_view",["assign_data" => $assign_data]);
     }
 }
