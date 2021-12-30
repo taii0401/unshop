@@ -19,6 +19,7 @@
 
 <body class="bg02">
     <div class="container">
+        @include('layouts.front_header')
         @yield('content')
         @include('layouts.footer')
     </div>
