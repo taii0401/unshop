@@ -169,7 +169,7 @@ function deleteFile(id,type) {
     var csrf_token = getToken();
     //刪除上傳顯示檔案block
     $('#uploaderFile'+id).remove();
-    if(type == 'add') { //新增時，尚未存至資料表(proweb_file_data)，因此直接刪除
+    if(type == 'add') { //新增時，尚未存至資料表，因此直接刪除
         //刪除實際路徑
         $.ajax({
             type: 'POST',
@@ -517,7 +517,7 @@ function productSubmit(action_type) {
     
     $.ajax({
         type: 'POST',
-        url: '/product/ajax_product_data/',
+        url: '/ajax/product_data/',
         dataType: 'json',
         async: false,
         data: $('#form_data').serialize(),
@@ -532,14 +532,14 @@ function productSubmit(action_type) {
                 if(action_type == 'add') { //新增
                     uuid = response.message;
                     alert("新增成功！");
-                    changeForm('/product/product_data/edit?uuid='+uuid);
+                    changeForm('/products/edit?uuid='+uuid);
                 } else if(action_type == 'edit') { //編輯
                     uuid = $('#uuid').val();
                     alert("編輯成功！");
-                    changeForm('/product/product_data/edit?uuid='+uuid);
+                    changeForm('/products/edit?uuid='+uuid);
                 } else if(action_type == 'delete' || action_type == 'delete_list') { //刪除、刪除-列表勾選多筆
                     alert("刪除成功！");
-                    changeForm('/product/product_list');
+                    changeForm('/products');
                 }
             } else if(response.error == true) {
                 showMsg('msg_error',response.message,true);
