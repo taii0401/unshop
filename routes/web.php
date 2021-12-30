@@ -45,6 +45,12 @@ Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
 //我的頁面-商品檢視
 Route::get('/fronts/product_view', [FrontController::class, 'product_view']);
 
+//商品
+Route::get('/products', [ProductController::class, 'index']);
+//新增商品
+Route::get('/products/create', [ProductController::class, 'create']);
+//編輯商品
+Route::get('/products/edit', [ProductController::class, 'edit']);
 
 //Route::get('/users', UserController::class);
 //Route::resource('product', ProductController::class);
@@ -61,6 +67,8 @@ Route::post('/ajax/user_link_exist', [AjaxController::class, 'user_link_exist'])
 Route::post('/ajax/user_forget', [AjaxController::class, 'user_forget']);
 //使用者資料-新增、編輯、刪除
 Route::post('/ajax/user_data', [AjaxController::class, 'user_data']);
+//商品資料-新增、編輯、刪除
+Route::post('/ajax/product_data', [AjaxController::class, 'product_data']);
 
 
 
