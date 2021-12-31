@@ -1,5 +1,5 @@
 @extends('layouts.front_base')
-@section('title') 我的頁面 @endsection
+@section('title') {{ @$assign_data["title_txt"] }} @endsection
 @section('css')
 <style>
     .media-boxes {
@@ -90,9 +90,7 @@
                 <div class="media-boxes">
                     <div class="media">
                         <div style="width:180px; height:200px; margin-right:30px;">
-                            @if(isset($data["file_path"]) && $data["file_path"] != "")
-                            <img src="{{ @$data["file_path"] }}" width="180px" height="200px">
-                            @endif
+                            <img src="{{ @$data["file_url"] }}" width="180px" height="200px">
                         </div>
                         <div class="media-body tm-bg-gray">
                             <div class="tm-description-box">
@@ -105,7 +103,7 @@
                                 </p>
                             </div>
                             <div class="tm-buy-box">
-                                <a href="#" target="_blank" class="tm-bg-blue tm-text-white tm-buy" onclick="changeForm('/fronts/product_view?short_link={{ @$assign_data["short_link"] }}&uuid={{ @$data["uuid"] }}');">檢視</a>
+                                <a href="#" target="_blank" class="tm-bg-blue tm-text-white tm-buy" onclick="changeForm('/fronts/product_view?source={{ @$assign_data["source"] }}&short_link={{ @$assign_data["short_link"] }}&uuid={{ @$data["uuid"] }}');">檢視</a>
                                 <span class="tm-text-blue tm-price-tag">${{ @$data["sales"] }}</span>
                             </div>
                         </div>
