@@ -1,5 +1,5 @@
 @extends('layouts.front_base')
-@section('title') {{ @$title_txt }} @endsection
+@section('title') {{ @$assign_data["title_txt"] }} @endsection
 @section('css')
 <style>
     /*圖片輪播 START*/
@@ -103,11 +103,11 @@
                                     <ul>
                                         @if(isset($assign_data["file_datas"]))
                                             @foreach($assign_data["file_datas"] as $key => $val)
-                                            <li><img src="{{ @$val["url"] }}" width="450" height="400"></li>
-                                            {{ @$val["url"] }}
+                                                @if(isset($val["url"]) && $val["url"] != "")
+                                                    <li><img src="{{ @$val["url"] }}" width="450" height="400"></li>
+                                                @endif  
                                             @endforeach
                                         @endif
-                                        <li><img src="/storage/app/public/files/1/b6baddd1_20211230203852.jpg" width="450" height="400"></li>
                                     </ul>
                                     <div id="button-left" title="上一張"><</div>
                                     <div id="button-right" title="下一張">></div>
@@ -119,9 +119,7 @@
                             <table class="table-detail">
                                 <thead>
                                     <tr>
-                                        <td class="detail-title" style="width:150px;">
-                                        <img src="url('storage/files/1/b6baddd1_20211230203852.jpg')" width="450" height="400">
-                                        產品編號：</td>
+                                        <td class="detail-title" style="width:150px;">產品編號：</td>
                                         <td class="detail-text">{{ @$assign_data["serial"] }}</td>
                                     </tr>
                                     <tr>
@@ -166,7 +164,7 @@
                     </div>
                     <div class="row">
                         <div class="col-12 col-sm-6">
-                            <button type="button" class="btn btn-primary" onclick="changeForm('/fronts/my_page/{{ @$assign_data["short_link"] }}')">返回</button>
+                            <button type="button" class="btn btn-primary" onclick="changeForm('{{ @$assign_data["back_url"] }}')">返回</button>
                         </div>
                         <div class="col-12 col-sm-6 tm-btn-right"></div>
                     </div>
