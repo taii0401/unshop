@@ -103,7 +103,7 @@
                                 </div>
                             </td>
                             <td class="text-center">{{ @$data["serial"] }}</td>
-                            <td class="text-center"><img src="{{ @$data["file_path"] }}" width="auto" height="80px"></td>
+                            <td class="text-center"><img src="{{ @$data["file_url"] }}" width="auto" height="80px"></td>
                             <td class="tm-product-name">{{ @$data["name"] }}</td>
                             <td class="text-center">{{ @$data["types_name"] }}</td>
                             <td class="text-center">{{ @$data["price"] }}</td>

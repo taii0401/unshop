@@ -23,7 +23,14 @@ use App\Http\Controllers\ProductController;
     return view('welcome');
 });*/
 
-//Route::get('/', UserController::class);
+//首頁
+Route::get('/fronts', [FrontController::class, 'index']);
+//我的頁面
+Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
+//我的頁面-商品檢視
+Route::get('/fronts/product_view', [FrontController::class, 'product_view']);
+
+
 //登入
 Route::get('/users', [UserController::class, 'index']);
 //登出
@@ -40,10 +47,7 @@ Route::get('/users/edit_password', [UserController::class, 'edit_password']);
 //登入-送出
 Route::post('/users/login', [UserController::class, 'login'])->name("users.login");
 
-//我的頁面
-Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
-//我的頁面-商品檢視
-Route::get('/fronts/product_view', [FrontController::class, 'product_view']);
+
 
 //商品
 Route::get('/products', [ProductController::class, 'index']);

@@ -397,7 +397,7 @@ class Controller extends BaseController
      */
     public function getProductData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array())
     {
-        $datas = $all_datas = array();
+        $datas = $all_datas = $conds = array();
 
         //條件欄位
 		$cols = array("uuid","user_id","types","is_display","is_delete");
@@ -473,6 +473,7 @@ class Controller extends BaseController
                     foreach($file_datas as $file_data) {
                         if(isset($file_data["path"]) && $file_data["path"] != "") {
                             $data["file_path"] = $file_data["path"];
+                            $data["file_url"] = asset(Storage::url($file_data["path"]));
                             continue;
                         }
                     }
@@ -485,5 +486,123 @@ class Controller extends BaseController
         //$this->pr($datas);
 
         return $datas;
+    }
+
+    /**
+     * 商品資料列表(unshop_product)
+     * @param  request
+     * @param  type：product-後台商品列表、index-前台首頁、my_page-前台我的頁面
+     * @param  cond：搜尋條件
+     * @return array
+     */
+    public function showProductList($request,$type="index",$cond=array())
+    {
+        $assign_data = $conds = array();
+        //選項
+        $option_datas = array();
+        //排序
+        $option_datas["orderby"] = $this->getOptions("product_orderby");
+
+        $search_link = $search_get_url = "";
+        $short_link = isset($cond["short_link"])?$cond["short_link"]:"";
+        $user_id = isset($cond["user_id"])?$cond["user_id"]:0;
+
+        if($type == "index") { //前台首頁
+            $assign_data["title_txt"] = "首頁";
+            $assign_data["source"] = "index";
+            $search_link = "/fronts";
+            $search_datas = array("page","keywords","orderby");
+            
+            //搜尋條件
+            $conds["is_display"] = 1;
+        } else if($type == "my_page") { //前台我的頁面
+            $assign_data["title_txt"] = "我的頁面";
+            $assign_data["source"] = "my_page";
+            $search_link = "/fronts/my_page/".$short_link;
+            $search_datas = array("page","keywords","orderby");
+
+            //搜尋條件
+            $conds["user_id"] = $user_id;
+            $conds["is_delete"] = 0;
+            $conds["is_display"] = 1;
+        } else if($type == "product") { //後台商品列表
+            $search_link = "/products";
+            $search_datas = array("page","keywords","types","is_display","orderby");
+
+            //選項
+            //是否顯示
+            $option_datas["is_display"] = $this->getOptions("product_is_display");
+            //代碼-類別
+            $option_datas["types"] = $this->getOptions("code","product_category",true);
+
+            //搜尋條件
+            $conds["user_id"] = $user_id;
+            $conds["is_delete"] = 0;
+        }
+
+        //取得目前頁數及搜尋條件
+        foreach($search_datas as $search_data) {
+            if($request->has($search_data)) {
+                ${$search_data} = $request->input($search_data); //取得搜尋條件的值
+                $assign_data[$search_data] = ${$search_data}; //顯示資料
+                if(${$search_data} != "") {
+                    //搜尋條件
+                    if(in_array($search_data,array("keywords","types","is_display"))) {
+                        $conds[$search_data] = ${$search_data};
+                    }
+                    //加入搜尋連結
+                    if($search_data != "page") {
+                        if($search_get_url == "") {
+                            $search_get_url .= "?";
+                        } else {
+                            $search_get_url .= "&";
+                        }
+                        $search_get_url .= $search_data."=".${$search_data};
+                    }
+                }
+            } else {
+                //預設目前頁數和排序
+                if($search_data == "page") {
+                    ${$search_data} = 1;
+                } else if($search_data == "orderby") {
+                    ${$search_data} = "asc_serial";
+                } else {
+                    ${$search_data} = "";
+                }
+
+                $assign_data[$search_data] = ${$search_data}; //顯示資料
+            }
+        }
+        //$this->pr($conds);
+
+        //顯示資料
+        $assign_data["short_link"] = $short_link;
+        $assign_data["search_get_url"] = $search_get_url;
+
+        $datas = array();
+        //排序
+        $orderby_sort = "asc";
+        $orderby_col = "serial";
+        if(isset($orderby) && $orderby != "") {
+            $str = explode("_",$orderby);
+            $orderby_sort = isset($str[0])?$str[0]:$orderby_sort;
+            $orderby_col = isset($str[1])?$str[1]:$orderby_col;
+        }
+        //分頁條件
+        $page_conds = array("search_link" => $search_link,"page" => $page);
+        //取得商品資料
+        $all_datas = $this->getProductData($conds,$orderby_col,$orderby_sort,true,$page_conds);
+        //分頁資料
+        $page_data = isset($all_datas["page_data"])?$all_datas["page_data"]:array();
+        //列表資料
+        $datas = isset($all_datas["list_data"])?$all_datas["list_data"]:array();
+
+        $return_datas = array();
+        $return_datas["assign_data"] = $assign_data;
+        $return_datas["option_datas"] = $option_datas;
+        $return_datas["datas"] = $datas;
+        $return_datas["page_data"] = $page_data;
+
+        return $return_datas;
     }
 }
