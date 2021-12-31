@@ -50,10 +50,10 @@ class AjaxController extends Controller
             $file_name = substr(Str::uuid()->toString(),0,8)."_".date("YmdHis").".".$types;
 
             //檔案存放路徑
-            $diskName = "files";
-            //將檔案存在./storage/files/$user_id/，並將檔名改為$file_name
+            $diskName = "public";
+            //將檔案存在./storage/public/files/$user_id/，並將檔名改為$file_name
             $path = $request->file("file")->storeAs(
-                $user_id,
+                "files/".$user_id,
                 $file_name,
                 $diskName
             );
