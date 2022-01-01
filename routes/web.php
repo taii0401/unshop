@@ -24,7 +24,7 @@ use App\Http\Controllers\ProductController;
 });*/
 
 //首頁
-Route::get('/fronts', [FrontController::class, 'index']);
+Route::get('/', [FrontController::class, 'index']);
 //我的頁面
 Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
 //我的頁面-商品檢視
