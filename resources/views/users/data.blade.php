@@ -1,4 +1,4 @@
-@extends('layouts.base')
+@extends('layouts.front_base')
 @section('title') {{ @$title_txt }} @endsection
 @section('content')
 <div class="row tm-mt-big">

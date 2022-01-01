@@ -1,7 +1,7 @@
 <div class="row">
     <div class="col-12">
         <nav class="navbar navbar-expand-xl navbar-light bg-light">
-            <a class="navbar-brand" href="/fronts">
+            <a class="navbar-brand" href="/">
                 <i class="fas fa-3x fa-tachometer-alt tm-site-icon"></i>
                 <h1 class="tm-site-title mb-0">UN SHOP後台管理</h1>
             </a>
@@ -13,13 +13,6 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mx-auto">
                     @if(UserAuth::isLoggedIn())
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">會員管理</a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="/users/edit_password">修改密碼</a>
-                                <a class="dropdown-item" href="/users/edit">會員資料</a>
-                            </div>
-                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/products">商品管理</a>
                         </li>
