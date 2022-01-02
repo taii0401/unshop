@@ -467,14 +467,13 @@ class Controller extends BaseController
                 $file_datas = $this->getFileData($conds_file,true);
                 //$this->pr($file_datas);
                 
-                //列表-只取一張
+                //列表-只取一張圖片
                 $data["file_path"] = "";
                 if($is_page && !empty($file_datas)) {
                     foreach($file_datas as $file_data) {
-                        if(isset($file_data["path"]) && $file_data["path"] != "") {
+                        if($data["file_path"] == "" && isset($file_data["path"]) && $file_data["path"] != "") {
                             $data["file_path"] = $file_data["path"];
                             $data["file_url"] = asset(Storage::url($file_data["path"]));
-                            continue;
                         }
                     }
                 }
