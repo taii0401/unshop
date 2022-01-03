@@ -89,7 +89,7 @@
         <div class="bg-white tm-block">
             <div class="row">
                 <div class="col-12">
-                    <h2 class="tm-block-title">{{ @$title_txt }}</h2>
+                    <h2 class="tm-block-title">{{ @$assign_data["title_txt"] }}</h2>
                 </div>
             </div>
             <div class="row">
@@ -104,7 +104,7 @@
                                         @if(isset($assign_data["file_datas"]))
                                             @foreach($assign_data["file_datas"] as $key => $val)
                                                 @if(isset($val["url"]) && $val["url"] != "")
-                                                    <li><img src="{{ @$val["url"] }}" width="450" height="400"></li>
+                                                    <li><img src="{{ @$val["url"] }}" width="400" height="350"></li>
                                                 @endif  
                                             @endforeach
                                         @endif
@@ -145,6 +145,20 @@
                                     <tr>
                                         <td class="detail-title">售價：</td>
                                         <td class="detail-text"><span style="color: red;">{{ @$assign_data["sales"] }}元</span></td>
+                                    </tr>
+                                </thead>
+                            </table>
+                            <form id="form_data" class="tm-signup-form" method="post">
+                                @csrf
+                                <input type="hidden" id="action_type" name="action_type" value="add">
+                                <input type="hidden" id="product_user_id" name="product_user_id" value="{{ @$assign_data["user_id"] }}">
+                                <input type="hidden" id="product_id" name="product_id" value="{{ @$assign_data["id"] }}">
+                            </form>
+                            <table style="margin-top:15px">
+                                <thead>
+                                    <tr>
+                                        <td><button type="button" class="btn btn-primary" onclick="updateCart('add')">加入購物車</button></td>
+                                        <td></td>
                                     </tr>
                                 </thead>
                             </table>
