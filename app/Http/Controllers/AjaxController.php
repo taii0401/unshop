@@ -16,9 +16,9 @@ use App\Libraries\UserAuth;
 //Model
 use App\Models\User;
 use App\Models\UnshopFile;
-use App\Models\UnshopFileData;
 use App\Models\UnshopUser;
 use App\Models\UnshopProduct;
+use App\Models\UnshopCart;
 
 class AjaxController extends Controller
 {
@@ -210,7 +210,7 @@ class AjaxController extends Controller
         //建立時間
         $now = date("Y-m-d H:i:s");
         //表單動作類型(新增、編輯、刪除)
-        $action_type = $request->has("action_type")?$request->action_type:"";
+        $action_type = $request->has("action_type")?$request->input("action_type"):"";
         //print_r($action_type);
         
         if($action_type == "add") { //新增使用者
@@ -279,13 +279,13 @@ class AjaxController extends Controller
                     $user = User::where(["id" => $user_id])->first();
                     //檢查密碼是否符合
                     if(!empty($user) && $request->has("password") && $request->has("confirm_password")) {
-                        if(trim($request->password) == $user->password) {
+                        if(trim($request->input("password")) == $user->password) {
                             $message = "密碼尚未修改！";
                         } else {
                             try {
-                                if(trim($request->password) == trim($request->confirm_password)) {
+                                if(trim($request->input("password")) == trim($request->input("confirm_password"))) {
                                     $data = array();
-                                    $data["password"] = Hash::make(trim($request->password));
+                                    $data["password"] = Hash::make(trim($request->input("password")));
                                     User::where(["id" => $user_id])->update($data);
                                     $error = false;
                                 } else {
@@ -329,7 +329,7 @@ class AjaxController extends Controller
             //建立時間
             $now = date("Y-m-d H:i:s");
             //表單動作類型(新增、編輯、刪除)
-            $action_type = $request->has("action_type")?$request->action_type:"";
+            $action_type = $request->has("action_type")?$request->input("action_type"):"";
             //print_r($action_type);
 
             if($action_type == "add" || $action_type == "edit") { //新增、編輯
@@ -339,8 +339,8 @@ class AjaxController extends Controller
                 $data["author"] = $request->has("author")?$request->input("author"):""; //作者
                 $data["office"] = $request->has("office")?$request->input("office"):""; //出版社
                 $data["publish"] = $request->has("publish")?$request->input("publish"):""; //出版日期
-                $data["price"] = $request->has("price")?(int)$request->input("price"):""; //原價
-                $data["sales"] = $request->has("sales")?(int)$request->input("sales"):""; //售價
+                $data["price"] = $request->has("price")?(int)$request->input("price"):0; //原價
+                $data["sales"] = $request->has("sales")?(int)$request->input("sales"):$data["price"]; //售價
                 $data["content"] = $request->has("content")?$request->input("content"):""; //內容簡介
                 $data["category"] = $request->has("category")?$request->input("category"):""; //目錄
                 //是否顯示
@@ -358,7 +358,7 @@ class AjaxController extends Controller
                     //取得代碼名稱
                     $code_datas = $this->getData("code",array(),"code");
                     //商品類型
-                    $types = $request->has("types")?$request->types:1;
+                    $types = $request->has("types")?$request->input("types"):1;
                     //商品類型代碼
                     $serial_code = isset($code_datas[$types])?$code_datas[$types]:"";
                     //取得新編號
@@ -448,6 +448,84 @@ class AjaxController extends Controller
             }
         } else {
             $message = "沒有權限！";
+        }
+
+        $return_data = array("error" => $error,"message" => $message);
+        //print_r($return_data);
+        return response()->json($return_data);
+    }
+
+    //購物車-新增、編輯、刪除
+    public function cart_data(Request $request)
+    {
+        $error = true;
+        $message = "請確認資料！";
+
+        //判斷是否登入
+        if(UserAuth::isLoggedIn()) {
+            $user_uuid = session("userUuid");
+            $user_id = 0;
+            if($user_uuid != "") {
+                //使用者資料
+                $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
+                $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+            }
+            
+            if($user_id > 0) {
+                //建立時間
+                $now = date("Y-m-d H:i:s");
+                //表單動作類型(新增、編輯、刪除)
+                $action_type = $request->has("action_type")?$request->input("action_type"):"";
+                //print_r($action_type);
+                //商品ID
+                $product_id = $request->has("product_id")?$request->input("product_id"):0;
+                //print_r($product_id);
+
+                $data = array();
+                if($action_type == "add") { //新增
+                    //販賣商品的使用者
+                    $product_user_id = $request->has("product_user_id")?$request->input("product_user_id"):0;
+                    if($product_user_id == $user_id) {
+                        $message = "無法購買自己的商品！";
+                    } else {
+                        if($product_id > 0) {
+                            //新增商品至購物車
+                            $data["user_id"] = $user_id;
+                            $data["product_id"] = $product_id;
+                            $data["amount"] = 1;
+                            $data["create_time"] = $now;
+                            $data["modify_time"] = $now;
+                            
+                            try {
+                                UnshopCart::create($data);
+                                $error = false;
+                            } catch(QueryException $e) {
+                                $error = false;
+                                $message = "商品已存在！";
+                            }
+                        } else {
+                            $message = "無此商品！";
+                        }
+                    }
+                } else if($action_type == "edit") { //編輯-更新數量、回傳總計
+                    $data["amount"] = $request->has("amount")?$request->input("amount"):1;
+                    try {
+                        UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->update($data);
+                        $error = false;
+                    } catch(QueryException $e) {
+                        $message = "更新錯誤！";
+                    }
+                } else if($action_type == "delete") { //刪除
+                    try {
+                        UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->delete();
+                        $error = false;
+                    } catch(QueryException $e) {
+                        $message = "刪除錯誤！";
+                    }
+                }
+            }
+        } else {
+            $message = "請先登入！";
         }
 
         $return_data = array("error" => $error,"message" => $message);
