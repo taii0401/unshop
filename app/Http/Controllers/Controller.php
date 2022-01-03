@@ -393,20 +393,19 @@ class Controller extends BaseController
      * @param  sort：排序-遞增、遞減
      * @param  is_page：是否分頁
      * @param  page_cond：分頁條件
+     * @param  is_one：圖片是否只取一張
      * @return array
      */
-    public function getProductData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array())
+    public function getProductData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array(),$is_one=false)
     {
-        $datas = $all_datas = $conds = array();
+        $datas = $all_datas = $conds = $conds_in = array();
 
         //條件欄位
-		$cols = array("uuid","user_id","types","is_display","is_delete");
+		$cols = array("id","uuid","user_id","types","is_display","is_delete");
 		foreach($cols as $col) {
 			if(isset($cond[$col])) {
 				if(is_array($cond[$col])) {
-					$val = array();
-					$val[implode(",",$cond[$col])] = "in";
-					$conds[$col] = $val;
+					$conds_in[$col] = $cond[$col];
 				} else if($cond[$col] != "") {
 					if(is_numeric($cond[$col])) {
 						$conds[$col] = (int)$cond[$col];
@@ -417,6 +416,12 @@ class Controller extends BaseController
 			}
 		}
         $all_datas = UnshopProduct::where($conds);
+        //搜尋條件
+        if(!empty($conds_in)) {
+            foreach($conds_in as $key => $val) {
+                $all_datas = $all_datas->whereIn($key,$val);
+            }
+        }
         //關鍵字
         if(isset($cond["keywords"]) && $cond["keywords"] != "") {
             $keywords = $cond["keywords"];
@@ -455,6 +460,7 @@ class Controller extends BaseController
             foreach($list_data as $key => $val) {
                 $data = array();
                 $data = $val;
+                $id = isset($val["id"])?$val["id"]:0;
                 //轉換名稱-類別
                 $data["types_name"] = isset($option_datas["types"][$data["types"]])?$option_datas["types"][$data["types"]]:"";
                 //轉換名稱-是否顯示
@@ -462,14 +468,14 @@ class Controller extends BaseController
 
                 //取得檔案
                 $conds_file = array();
-                $conds_file["data_id"] = isset($val["id"])?$val["id"]:0;
+                $conds_file["data_id"] = $id;
                 $conds_file["data_type"] = "product";
                 $file_datas = $this->getFileData($conds_file,true);
                 //$this->pr($file_datas);
                 
                 //列表-只取一張圖片
                 $data["file_path"] = "";
-                if($is_page && !empty($file_datas)) {
+                if($is_one && !empty($file_datas)) {
                     foreach($file_datas as $file_data) {
                         if($data["file_path"] == "" && isset($file_data["path"]) && $file_data["path"] != "") {
                             $data["file_path"] = $file_data["path"];
@@ -478,8 +484,8 @@ class Controller extends BaseController
                     }
                 }
 
-                $datas["list_data"][$key] = $data;
-                $datas["list_data"][$key]["file_datas"] = $file_datas;
+                $datas["list_data"][$id] = $data;
+                $datas["list_data"][$id]["file_datas"] = $file_datas;
             }
         }
         //$this->pr($datas);
@@ -590,7 +596,7 @@ class Controller extends BaseController
         //分頁條件
         $page_conds = array("search_link" => $search_link,"page" => $page);
         //取得商品資料
-        $all_datas = $this->getProductData($conds,$orderby_col,$orderby_sort,true,$page_conds);
+        $all_datas = $this->getProductData($conds,$orderby_col,$orderby_sort,true,$page_conds,true);
         //分頁資料
         $page_data = isset($all_datas["page_data"])?$all_datas["page_data"]:array();
         //列表資料

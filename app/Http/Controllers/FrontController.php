@@ -72,7 +72,9 @@ class FrontController extends Controller
         $assign_data["uuid"] = $uuid;
         //返回
         $assign_data["back_url"] = "/fronts";
-        if($source == "my_page" && $short_link != "") {
+        if($source == "cart") { //購物車
+            $assign_data["back_url"] = "/orders/cart";
+        } else if($source == "my_page" && $short_link != "") { //我的頁面
             $assign_data["back_url"] = "/fronts/my_page/".$short_link;
         }
 
@@ -83,9 +85,11 @@ class FrontController extends Controller
             $cond["is_delete"] = 0;
             $all_datas = $this->getProductData($cond);
             //資料
-            if(isset($all_datas["list_data"][0])) {
-                foreach($all_datas["list_data"][0] as $key => $val) {
-                    $assign_data[$key] = $val;
+            if(isset($all_datas["list_data"])) {
+                foreach($all_datas["list_data"] as $list_data) {
+                    foreach($list_data as $key => $val) {
+                        $assign_data[$key] = $val;
+                    }
                 }
             } else {
                 return redirect("fronts/my_page/".$short_link);
