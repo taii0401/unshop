@@ -5,6 +5,7 @@ use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OrderController;
 
 
 
@@ -25,6 +26,7 @@ use App\Http\Controllers\ProductController;
 
 //首頁
 Route::get('/', [FrontController::class, 'index']);
+Route::get('/fronts', [FrontController::class, 'index']);
 //我的頁面
 Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
 //我的頁面-商品檢視
@@ -56,6 +58,14 @@ Route::get('/products/create', [ProductController::class, 'create']);
 //編輯商品
 Route::get('/products/edit', [ProductController::class, 'edit']);
 
+
+//訂單
+Route::get('/orders', [OrderController::class, 'index']);
+//購物車
+Route::get('/orders/cart', [OrderController::class, 'cart']);
+//購物車結帳
+Route::get('/orders/pay', [OrderController::class, 'pay']);
+
 //Route::get('/users', UserController::class);
 //Route::resource('product', ProductController::class);
 
@@ -73,7 +83,8 @@ Route::post('/ajax/user_forget', [AjaxController::class, 'user_forget']);
 Route::post('/ajax/user_data', [AjaxController::class, 'user_data']);
 //商品資料-新增、編輯、刪除
 Route::post('/ajax/product_data', [AjaxController::class, 'product_data']);
-
+//購物車-新增、編輯、刪除
+Route::post('/ajax/cart_data', [AjaxController::class, 'cart_data']);
 
 
 /*Route::prefix('members')->name('members.')->group(function() {

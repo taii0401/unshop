@@ -551,3 +551,76 @@ function productSubmit(action_type) {
         }
     });
 }
+
+//購物車-新增、編輯、刪除
+function updateCart(action_type) {
+    $('#action_type').val(action_type);
+
+    if(action_type == 'delete') { //刪除
+        var yes = confirm("你確定要刪除嗎？");
+        if(!yes) {
+            return false;
+        }
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: '/ajax/cart_data/',
+        dataType: 'json',
+        async: false,
+        data: $('#form_data').serialize(),    
+        error: function(xhr) {
+            //console.log(xhr);
+            alert('傳送錯誤！');
+            return false;
+        },
+        success: function(response) {
+            //console.log(response);
+            if(response.error == false) {
+                if(action_type == 'add') { //新增
+                    alert("新增成功！");
+                    changeForm('/orders/cart');
+                } else if(action_type == 'edit') { //編輯
+                    //uuid = $('#uuid').val();
+                    //alert("編輯成功！");
+                    //changeForm('/products/edit?uuid='+uuid);
+                } else if(action_type == 'delete') { //刪除
+                    alert("刪除成功！");
+                    changeForm('/orders/cart');
+                }
+            } else if(response.error == true) {
+                showMsg('msg_error',response.message,false);
+                return false;
+            } else {
+                alert('傳送錯誤！');
+                return false;
+            }
+        }
+    });
+}
+
+//更新購物車小計、合計
+function changeTotal(id) {
+    amount = parseInt($('#amount_'+id).val());
+    price = parseInt($('#price_'+id).val());
+
+    //更新購物車數量
+    $('#amount').val(amount);
+    $('#product_id').val(id);
+    updateCart('edit');
+
+    //計算小計
+    subtotal = amount*price;
+    $('#subtotal_'+id).html(subtotal);
+    $('#subtotal_col_'+id).val(subtotal);
+
+    //計算合計
+    total = 0;
+    $("input[name='subtotal[]']").each(function() {
+        if(parseInt(this.value) > 0) {
+            total += parseInt(this.value);
+        }
+    });
+    //console.log(total);
+    $('#total').html(total);
+}
