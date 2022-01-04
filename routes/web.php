@@ -65,6 +65,8 @@ Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/cart', [OrderController::class, 'cart']);
 //購物車結帳
 Route::get('/orders/pay', [OrderController::class, 'pay']);
+//訂單明細
+Route::get('/orders/data', [OrderController::class, 'data']);
 
 //Route::get('/users', UserController::class);
 //Route::resource('product', ProductController::class);
@@ -85,6 +87,8 @@ Route::post('/ajax/user_data', [AjaxController::class, 'user_data']);
 Route::post('/ajax/product_data', [AjaxController::class, 'product_data']);
 //購物車-新增、編輯、刪除
 Route::post('/ajax/cart_data', [AjaxController::class, 'cart_data']);
+//訂單-新增、編輯、刪除
+Route::post('/ajax/order_data', [AjaxController::class, 'order_data']);
 
 
 /*Route::prefix('members')->name('members.')->group(function() {

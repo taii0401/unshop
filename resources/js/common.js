@@ -553,7 +553,7 @@ function productSubmit(action_type) {
 }
 
 //購物車-新增、編輯、刪除
-function updateCart(action_type) {
+function cartSubmit(action_type) {
     $('#action_type').val(action_type);
 
     if(action_type == 'delete') { //刪除
@@ -580,10 +580,6 @@ function updateCart(action_type) {
                 if(action_type == 'add') { //新增
                     alert("新增成功！");
                     changeForm('/orders/cart');
-                } else if(action_type == 'edit') { //編輯
-                    //uuid = $('#uuid').val();
-                    //alert("編輯成功！");
-                    //changeForm('/products/edit?uuid='+uuid);
                 } else if(action_type == 'delete') { //刪除
                     alert("刪除成功！");
                     changeForm('/orders/cart');
@@ -600,14 +596,14 @@ function updateCart(action_type) {
 }
 
 //更新購物車小計、合計
-function changeTotal(id) {
+function cartChangeTotal(id) {
     amount = parseInt($('#amount_'+id).val());
     price = parseInt($('#price_'+id).val());
 
     //更新購物車數量
     $('#amount').val(amount);
     $('#product_id').val(id);
-    updateCart('edit');
+    cartSubmit('edit');
 
     //計算小計
     subtotal = amount*price;
@@ -623,4 +619,59 @@ function changeTotal(id) {
     });
     //console.log(total);
     $('#total').html(total);
+}
+
+//訂單-新增、編輯、刪除
+function orderSubmit(action_type) {
+    $('#action_type').val(action_type);
+    
+	if(action_type == 'add') { //新增
+        //檢查必填
+        if(checkRequiredClass('require',true) == false) {
+            return false;
+        }
+        //檢查手機號碼
+        if($('#phone').val() != '') {
+            if(checkFormat('phone',$('#phone').val(),0,true) == false) {
+                return false;
+            }
+        }
+    }
+    if(action_type == 'delete') { //刪除
+        var yes = confirm("你確定要刪除嗎？");
+        if(!yes) {
+            return false;
+        }
+    }
+
+    $('.form-control').attr('disabled',false);
+
+    $.ajax({
+        type: 'POST',
+        url: '/ajax/order_data/',
+        dataType: 'json',
+        async: false,
+        data: $('#form_data').serialize(),    
+        error: function(xhr) {
+            //console.log(xhr);
+            alert('傳送錯誤！');
+            return false;
+        },
+        success: function(response) {
+            //console.log(response);
+            if(response.error == false) {
+                if(action_type == 'add') { //新增
+                    uuid = response.message;
+                    alert("購買成功！");
+                    changeForm('/orders/data?uuid='+uuid);
+                }
+            } else if(response.error == true) {
+                showMsg('msg_error',response.message,false);
+                return false;
+            } else {
+                alert('傳送錯誤！');
+                return false;
+            }
+        }
+    });
 }

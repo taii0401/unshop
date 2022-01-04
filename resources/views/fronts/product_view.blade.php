@@ -157,7 +157,7 @@
                             <table style="margin-top:15px">
                                 <thead>
                                     <tr>
-                                        <td><button type="button" class="btn btn-primary" onclick="updateCart('add')">加入購物車</button></td>
+                                        <td><button type="button" class="btn btn-primary" onclick="cartSubmit('add')">加入購物車</button></td>
                                         <td></td>
                                     </tr>
                                 </thead>

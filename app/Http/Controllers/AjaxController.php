@@ -19,6 +19,8 @@ use App\Models\UnshopFile;
 use App\Models\UnshopUser;
 use App\Models\UnshopProduct;
 use App\Models\UnshopCart;
+use App\Models\UnshopOrder;
+use App\Models\UnshopOrderItem;
 
 class AjaxController extends Controller
 {
@@ -362,7 +364,7 @@ class AjaxController extends Controller
                     //商品類型代碼
                     $serial_code = isset($code_datas[$types])?$code_datas[$types]:"";
                     //取得新編號
-                    $serial_num = $this->getSerial(array("types"=>$types));
+                    $serial_num = $this->getSerial("product",array("types"=>$types));
 
                     $data["uuid"] = $uuid;
                     $data["user_id"] = $user_id;
@@ -482,13 +484,13 @@ class AjaxController extends Controller
                 //print_r($product_id);
 
                 $data = array();
-                if($action_type == "add") { //新增
-                    //販賣商品的使用者
-                    $product_user_id = $request->has("product_user_id")?$request->input("product_user_id"):0;
-                    if($product_user_id == $user_id) {
-                        $message = "無法購買自己的商品！";
-                    } else {
-                        if($product_id > 0) {
+                if($product_id > 0) {
+                    if($action_type == "add") { //新增
+                        //販賣商品的使用者
+                        $product_user_id = $request->has("product_user_id")?$request->input("product_user_id"):0;
+                        if($product_user_id == $user_id) {
+                            $message = "無法購買自己的商品！";
+                        } else {
                             //新增商品至購物車
                             $data["user_id"] = $user_id;
                             $data["product_id"] = $product_id;
@@ -503,24 +505,131 @@ class AjaxController extends Controller
                                 $error = false;
                                 $message = "商品已存在！";
                             }
-                        } else {
-                            $message = "無此商品！";
+                        }
+                    } else if($action_type == "edit") { //編輯-更新數量
+                        $data["amount"] = $request->has("amount")?$request->input("amount"):1;
+                        try {
+                            UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->update($data);
+                            $error = false;
+                        } catch(QueryException $e) {
+                            $message = "更新錯誤！";
+                        }
+                    } else if($action_type == "delete") { //刪除
+                        try {
+                            UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->delete();
+                            $error = false;
+                        } catch(QueryException $e) {
+                            $message = "刪除錯誤！";
                         }
                     }
-                } else if($action_type == "edit") { //編輯-更新數量、回傳總計
-                    $data["amount"] = $request->has("amount")?$request->input("amount"):1;
+                } else {
+                    $message = "無此商品！";
+                }
+            }
+        } else {
+            $message = "請先登入！";
+        }
+
+        $return_data = array("error" => $error,"message" => $message);
+        //print_r($return_data);
+        return response()->json($return_data);
+    }
+
+    //訂單-新增、編輯、刪除
+    public function order_data(Request $request)
+    {
+        $error = true;
+        $message = "請確認資料！";
+        
+        //判斷是否登入
+        if(UserAuth::isLoggedIn()) {
+            $user_uuid = session("userUuid");
+            $user_id = 0;
+            if($user_uuid != "") {
+                //使用者資料
+                $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
+                $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+            }
+            
+            if($user_id > 0) {
+                //建立時間
+                $now = date("Y-m-d H:i:s");
+                //表單動作類型(新增、編輯、刪除)
+                $action_type = $request->has("action_type")?$request->input("action_type"):"";
+                //print_r($action_type);
+
+                $data = array();
+                if($action_type == "add") { //新增
+                    $isSuccess = false;
+                    //UUID
+                    $uuid = Str::uuid()->toString();
+                    //取得新編號
+                    $serial_num = $this->getSerial("order");
+                    
+                    $data["uuid"] = $uuid;
+                    $data["user_id"] = $user_id;
+                    $data["serial_code"] = "U";
+                    $data["serial_num"] = $serial_num;
+                    $data["serial"] = "U".str_pad($serial_num,4,0,STR_PAD_LEFT); //訂單編號
+                    $data["name"] = $request->has("name")?$request->input("name"):"";
+                    $data["phone"] = $request->has("phone")?$request->input("phone"):"";
+                    $data["address"] = $request->has("address")?$request->input("address"):"";
+                    $data["payment"] = $request->has("payment")?$request->input("payment"):0;
+                    $data["send"] = $request->has("send")?$request->input("send"):0;
+                    $data["total"] = $request->has("total")?$request->input("total"):0;
+                    $data["create_time"] = $now;
+                    $data["modify_time"] = $now;
+                    
                     try {
-                        UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->update($data);
+                        $order_data = UnshopOrder::create($data);
+                        $isSuccess = true;
+                    } catch(QueryException $e) {
+                        $message = "新增錯誤！";
+                    }
+
+                    //新增成功
+                    if($order_data->exists("id")) {
+                        $order_id = $order_data->id;
+                        if($order_id > 0) {
+                            //取得購物車資料
+                            $cart_datas = $this->getCartData(array("user_id" => $user_id),false);
+                            //新增訂單項目
+                            if(!empty($cart_datas)) {
+                                foreach($cart_datas as $cart_data) {
+                                    $item_data = array();
+                                    $item_data["order_id"] = $order_id;
+                                    $item_data["product_id"] = isset($cart_data["id"])?$cart_data["id"]:0;
+                                    $item_data["amount"] = isset($cart_data["amount"])?$cart_data["amount"]:0;
+                                    $item_data["price"] = isset($cart_data["price"])?$cart_data["price"]:0;
+                                    $item_data["total"] = isset($cart_data["subtotal"])?$cart_data["subtotal"]:0;
+                                    $item_data["create_time"] = $now;
+                                    $item_data["modify_time"] = $now;
+                                    try {
+                                        UnshopOrderItem::create($item_data);
+                                    } catch(QueryException $e) {
+                                        $isSuccess = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if($isSuccess) {
+                        try {
+                            UnshopCart::where(["user_id" => $user_id])->delete();
+                            $error = false;
+                            $message = $uuid;
+                        } catch(QueryException $e) {
+                            $message = "刪除購物車錯誤！";
+                        }
+                    }
+                } else if($action_type == "edit") { //編輯-更新狀態
+                    $uuid = $request->has("uuid")?$request->input("uuid"):"";
+                    try {
+                        UnshopCart::where(["uuid" => $uuid])->update($data);
                         $error = false;
                     } catch(QueryException $e) {
                         $message = "更新錯誤！";
-                    }
-                } else if($action_type == "delete") { //刪除
-                    try {
-                        UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->delete();
-                        $error = false;
-                    } catch(QueryException $e) {
-                        $message = "刪除錯誤！";
                     }
                 }
             }

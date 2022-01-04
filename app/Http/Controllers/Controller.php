@@ -20,6 +20,8 @@ use App\Models\UnshopCode;
 use App\Models\UnshopFile;
 use App\Models\UnshopFileData;
 use App\Models\UnshopProduct;
+use App\Models\UnshopCart;
+use App\Models\UnshopOrder;
 
 class Controller extends BaseController
 {
@@ -56,8 +58,9 @@ class Controller extends BaseController
         if(!empty($get_datas)) {
             foreach($get_datas as $get_data) {
                 //ID
-                $id = isset($get_data["id"])?$get_data["id"]:0;
-                if($id > 0) {
+                $id = isset($get_data["id"])?$get_data["id"]:"";
+                
+                if($id != "") {
                     if($return_col != "") {
                         $data[$id] = isset($get_data[$return_col])?$get_data[$return_col]:"";
                     } else {
@@ -156,6 +159,7 @@ class Controller extends BaseController
             case "code": //代碼
                 $conds = array();
                 $conds["types"] = $code_type;
+                $conds["is_display"] = 1;
                 $conds["is_delete"] = 0;
                 $code_datas = $this->getData("code",$conds,"cname");
 
@@ -175,15 +179,20 @@ class Controller extends BaseController
     }
     
     /**
-     * 取得新編號(unshop_product)
+     * 取得新編號(unshop_product、unshop_order)
+     * @param  type：型態-product、order
      * @param  cond：搜尋條件
      * @return number
      */
-    public function getSerial($cond=array())
+    public function getSerial($type="product",$cond=array())
     {
         $serial_num = 0;
-        $data = UnshopProduct::where($cond)->orderBy("serial_num","desc")->first("serial_num");
-        if($data->exists("serial_num")) {
+        if($type == "product") {
+            $data = UnshopProduct::where($cond)->orderBy("serial_num","desc")->first("serial_num");
+        } else if($type == "order") {
+            $data = UnshopOrder::where($cond)->orderBy("serial_num","desc")->first("serial_num");
+        }
+        if(isset($data) && $data->exists("serial_num")) {
             $serial_num = $data->serial_num;
         }
         $serial_num += 1;
@@ -399,7 +408,7 @@ class Controller extends BaseController
     public function getProductData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array(),$is_one=false)
     {
         $datas = $all_datas = $conds = $conds_in = array();
-
+        
         //條件欄位
 		$cols = array("id","uuid","user_id","types","is_display","is_delete");
 		foreach($cols as $col) {
@@ -609,5 +618,92 @@ class Controller extends BaseController
         $return_datas["page_data"] = $page_data;
 
         return $return_datas;
+    }
+
+    /**
+     * 取得購物車資料(unshop_cart)
+     * @param  cond：搜尋條件
+     * @param  is_total：是否計算合計
+     * @return array
+     */
+    public function getCartData($cond=array(),$is_total=false)
+    {
+        $datas = $all_datas = $conds = $conds_in = array();
+
+        //條件欄位
+		$cols = array("user_id","product_id");
+		foreach($cols as $col) {
+			if(isset($cond[$col])) {
+				if(is_array($cond[$col])) {
+					$conds_in[$col] = $cond[$col];
+				} else if($cond[$col] != "") {
+					if(is_numeric($cond[$col])) {
+						$conds[$col] = (int)$cond[$col];
+					} else {
+						$conds[$col] = $cond[$col];
+					}
+				}
+			}
+		}
+        $all_datas = UnshopCart::where($conds);
+        //搜尋條件
+        if(!empty($conds_in)) {
+            foreach($conds_in as $key => $val) {
+                $all_datas = $all_datas->whereIn($key,$val);
+            }
+        }
+        //排序
+        $all_datas = $all_datas->orderBy("create_time","asc");
+        //print_r($all_datas->toSql());
+
+        //取得商品ID
+        $product_ids = $all_datas->pluck("product_id")->toArray();
+        //$this->pr($product_ids);exit;
+        //取得購物車資料
+        $cart_datas = $all_datas->get()->toArray();
+            
+        //取得商品資料
+        $conds = array();
+        $conds["id"] = $product_ids;
+        $product_datas = $this->getProductData($conds,"serial","asc",false,array(),true);
+        //$this->pr($product_datas);
+
+        //合計
+        $total = 0;
+        if(!empty($cart_datas)) {
+            foreach($cart_datas as $cart_data) {
+                //商品ID
+                $product_id = isset($cart_data["product_id"])?$cart_data["product_id"]:0;
+                //商品資料
+                $product_data = isset($product_datas["list_data"][$product_id])?$product_datas["list_data"][$product_id]:array();
+                //購買數量
+                $amount = isset($cart_data["amount"])?$cart_data["amount"]:0;
+                $product_data["amount"] = $amount;
+                //售價
+                $price = 0;
+                $sales = isset($product_data["sales"])?$product_data["sales"]:0; //售價
+                if($sales > 0) {
+                    $price = $sales;
+                } else { //原價
+                    $price = isset($product_data["price"])?$product_data["price"]:0;
+                }
+                $product_data["price"] = $price;
+                //小計
+                $subtotal = $amount*$price;
+                $product_data["subtotal"] = $subtotal;
+                //合計
+                $total += $subtotal;
+
+                $datas[] = $product_data;
+            }
+        }
+
+        //合計
+        if($is_total) {
+            $datas["total"] = $total;
+        }
+
+        //$this->pr($datas);
+        return $datas;
     }
 }

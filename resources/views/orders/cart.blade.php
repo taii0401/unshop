@@ -36,7 +36,7 @@
                             <td class="text-center"><img src="{{ @$data["file_url"] }}" width="auto" height="80px"></td>
                             <td class="tm-product-name">{{ @$data["name"] }}</td>
                             <td class="text-center">
-                                <input type="number" min="0" id="amount_{{ @$data["id"] }}" name="amount[]" value="{{ @$data["amount"] }}" style="width: 50px;" onchange="changeTotal('{{ @$data["id"] }}')">
+                                <input type="number" min="0" id="amount_{{ @$data["id"] }}" name="amount[]" value="{{ @$data["amount"] }}" style="width: 50px;" onchange="cartChangeTotal('{{ @$data["id"] }}')">
                             </td>
                             <td class="text-center">
                                 <input type="hidden" id="price_{{ @$data["id"] }}" value="{{ @$data["price"] }}">    
@@ -49,7 +49,7 @@
                             <td class="text-center">
                                 <div class="col">
                                     <div class="btn-action">
-                                        <i class="fas fa-trash-alt tm-trash-icon" onclick="$('#product_id').val('{{ @$data["id"] }}');updateCart('delete');"></i>
+                                        <i class="fas fa-trash-alt tm-trash-icon" onclick="$('#product_id').val('{{ @$data["id"] }}');cartSubmit('delete');"></i>
                                     </div>
                                 </div>
                             </td>

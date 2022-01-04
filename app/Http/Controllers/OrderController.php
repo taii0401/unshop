@@ -27,6 +27,14 @@ class OrderController extends Controller
     //購物車
     public function cart(Request $request)
     {
+        //判斷是否登入
+        if(!UserAuth::isLoggedIn()) {
+            //使用者登入
+            return redirect("users/");
+        } else {
+            $user_uuid = session("userUuid");
+        }
+
         $assign_data = $datas = array();
         $assign_data["title_txt"] = "購物車";
         //隱藏按鈕-結帳
@@ -34,66 +42,81 @@ class OrderController extends Controller
 
         $total = 0; //合計
 
-        //判斷是否登入
-        if(UserAuth::isLoggedIn()) {
-            $user_uuid = session("userUuid");
-            $user_id = 0;
-            if($user_uuid != "") {
-                //使用者資料
-                $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
-                $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+        $user_id = 0;
+        if($user_uuid != "") {
+            //使用者資料
+            $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
+            $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+        }
+        $assign_data["user_id"] = $user_id;
+
+        if($user_id > 0) {
+            //取得購物車資料
+            $cart_datas = $this->getCartData(array("user_id" => $user_id),true);
+            //合計
+            if(isset($cart_datas["total"])) {
+                $total = $cart_datas["total"];
+                unset($cart_datas["total"]);
             }
-            $assign_data["user_id"] = $user_id;
+            
+            $datas = $cart_datas;
 
-            if($user_id > 0) {
-                $cart = UnshopCart::where(["user_id" => $user_id])->orderBy("create_time","asc");
-                //取得商品ID
-                $product_ids = $cart->pluck("product_id")->toArray();
-                //$this->pr($product_ids);exit;
-                //取得購物車資料
-                $cart_datas = $cart->get()->toArray();
-                
-                //取得商品資料
-                $conds = array();
-                $conds["id"] = $product_ids;
-                $product_datas = $this->getProductData($conds,"serial","asc",false,array(),true);
-                //$this->pr($product_datas);
-
-                if(!empty($cart_datas)) {
-                    //按鈕-結帳
-                    $assign_data["btn_none"] = "";
-
-                    foreach($cart_datas as $cart_data) {
-                        //商品ID
-                        $product_id = isset($cart_data["product_id"])?$cart_data["product_id"]:0;
-                        //商品資料
-                        $product_data = isset($product_datas["list_data"][$product_id])?$product_datas["list_data"][$product_id]:array();
-                        //購買數量
-                        $amount = isset($cart_data["amount"])?$cart_data["amount"]:0;
-                        $product_data["amount"] = $amount;
-                        //售價
-                        $price = 0;
-                        $sales = isset($product_data["sales"])?$product_data["sales"]:0; //售價
-                        if($sales > 0) {
-                            $price = $sales;
-                        } else { //原價
-                            $price = isset($product_data["price"])?$product_data["price"]:0;
-                        }
-                        $product_data["price"] = $price;
-                        //小計
-                        $subtotal = $amount*$price;
-                        $product_data["subtotal"] = $subtotal;
-                        //合計
-                        $total += $subtotal;
-
-                        $datas[] = $product_data;
-                    }
-                }
+            //顯示結帳按鈕
+            if(!empty($cart_datas)) {
+                $assign_data["btn_none"] = "";
             }
         }
         $assign_data["total"] = $total;
         //$this->pr($datas);
         
         return view("orders.cart",["assign_data" => $assign_data,"datas" => $datas]);
+    }
+
+    //購物車-結帳
+    public function pay(Request $request)
+    {
+        //判斷是否登入
+        if(!UserAuth::isLoggedIn()) {
+            //使用者登入
+            return redirect("users/");
+        } else {
+            $user_uuid = session("userUuid");
+        }
+
+        $assign_data = $option_datas = array();
+        $user_id = 0;
+        if($user_uuid != "") {
+            //使用者資料
+            $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
+            $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+        }
+        $assign_data = $unshop_user;
+        
+        $assign_data["title_txt"] = "付款方式";
+        $total = 0;
+        if($user_id > 0) {
+            //取得購物車資料
+            $cart_datas = $this->getCartData(array("user_id" => $user_id),true);
+            //合計
+            if(isset($cart_datas["total"])) {
+                $total = $cart_datas["total"];
+                unset($cart_datas["total"]);
+            }
+            if(empty($cart_datas)) {
+                //購物車
+                return redirect("orders/cart");
+            } else {
+                //選項-預設
+                $assign_data["send"] = 4;
+                $assign_data["payment"] = 6;
+                //代碼-配送方式
+                $option_datas["send"] = $this->getOptions("code","order_send");
+                //代碼-付款方式
+                $option_datas["payment"] = $this->getOptions("code","order_pay");
+            }
+        }
+        $assign_data["total"] = $total;
+        
+        return view("orders.pay",["assign_data" => $assign_data,"option_datas" => $option_datas]);
     }
 }
