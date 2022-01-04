@@ -13,6 +13,6 @@ class UnshopOrder extends Model
     public $timestamps = false; 
     protected $primaryKey = 'id'; //主鍵，Model會另外自動加入id
     protected $fillable = [
-        'uuid','user_id','name','phone','address','payment','status','create_time','modify_time',
+        'uuid','user_id','serial_code','serial_num','serial','name','phone','address','total','payment','send','status','create_time','modify_time',
     ];
 }
