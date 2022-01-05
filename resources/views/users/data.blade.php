@@ -76,11 +76,11 @@
                         
                         <div class="row">
                             <div class="col-12 col-sm-6">
+                                <button type="button" class="btn btn-danger" onclick="userSubmit('delete');" style="display:{{ $btn_none }}">刪除帳號</button>
+                            </div>
+                            <div class="col-12 col-sm-6 tm-btn-right">
                                 <button type="button" class="btn btn-primary" onclick="userSubmit('{{ @$action_type }}');">送出</button>
                                 <button type="button" class="btn btn-danger" onclick="changeForm('/users')">取消</button>
-                            </div>
-                            <div class="col-12 col-sm-6 tm-btn-right" style="display:{{ $btn_none }}">
-                                <button type="button" class="btn btn-danger" onclick="userSubmit('delete');">刪除帳號</button>
                             </div>
                         </div>
 
