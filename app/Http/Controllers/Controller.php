@@ -205,223 +205,6 @@ class Controller extends BaseController
 
         return $data;
     }
-    
-    /**
-     * 取得新編號(unshop_product、unshop_order)
-     * @param  type：型態-product、order
-     * @param  cond：搜尋條件
-     * @return number
-     */
-    public function getSerial($type="product",$cond=array())
-    {
-        $serial_num = 0;
-        if($type == "product") {
-            $data = UnshopProduct::where($cond)->orderBy("serial_num","desc")->first("serial_num");
-        } else if($type == "order") {
-            $data = UnshopOrder::where($cond)->orderBy("serial_num","desc")->first("serial_num");
-        }
-        if(isset($data) && $data->exists("serial_num")) {
-            $serial_num = $data->serial_num;
-        }
-        $serial_num += 1;
-        return $serial_num;
-    }
-
-    /**
-     * 刪除檔案及實際路徑
-     * @param  file_ids：檔案ID
-     * @return boolean
-     */
-    public function deleteFile($file_ids=array())
-    {
-        $isSuccess = true;
-        if(!empty($file_ids)) {
-            $file_datas = UnshopFile::whereIn("id",$file_ids)->get()->toArray();
-            if(!empty($file_datas)) {
-                foreach($file_datas as $file_data) {
-                    $file_id = isset($file_data["id"])?$file_data["id"]:"";
-                    //刪除檔案存放路徑
-                    $file_path = isset($file_data["path"])?$file_data["path"]:"";
-                    if(Storage::exists($file_path)) {
-                        Storage::delete($file_path);
-                    }
-                    //刪除檔案
-                    $destroy = UnshopFile::destroy($file_id);
-                    if(!$destroy) {
-                        $isSuccess = false;
-                    }
-                }
-            }
-        }
-
-        return $isSuccess;
-    }
-    
-    /**
-     * 取得檔案資料(unshop_file_data)
-     * @param  cond：搜尋條件
-     * @param  is_detail：是否取得檔案詳細資料
-     * @param  orderby：排序欄位
-     * @param  sort：排序-遞增、遞減
-     * @return array
-     */
-    public function getFileData($cond=array(),$is_detail=false,$orderby="file_id",$sort="asc")
-    {
-        $data = array();
-        //取得檔案資料
-        $file_datas = UnshopFileData::where($cond)->orderBy($orderby,$sort)->get()->toArray();
-        //$this->pr($file_datas);exit;
-        if(!empty($file_datas)) {
-            foreach($file_datas as $file_data) {
-                $file_id = isset($file_data["file_id"])?$file_data["file_id"]:0;
-                $data[$file_id] = $file_data;
-
-                //取得檔案詳細資料
-                if($file_id > 0 && $is_detail) {
-                    $conds = array();
-                    $conds["id"] = $file_id;
-                    $file_details = $this->getData("file",$conds);
-                    if(!empty($file_details)) {
-                        foreach($file_details as $file_detail) {
-                            foreach($file_detail as $key => $val) {
-                                if($key != "id") {
-                                    if($key == "path") {
-                                        $url = asset(Storage::url($val));
-                                        $data[$file_id]["url"] = $url; 
-                                    }
-                                    $data[$file_id][$key] = $val;  
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        //$this->pr($data);
-
-        return $data;
-    }
-
-    /**
-     * 更新檔案資料
-     * @param  action_type：型態-add、edit、delete
-     * @param  data：檔案資料
-     * @return boolean
-     */
-    public function updateFileData($action_type="add",$data=array())
-    {
-        $error = true;
-        $message = "請確認資料！";
-        
-        //建立時間
-        $now = date("Y-m-d H:i:s");
-        
-        if($action_type == "add" || $action_type == "edit") {
-            $conds = array();
-            if(isset($data["data_id"]) && $data["data_id"] != "") {
-                $conds["data_id"] = $data["data_id"];
-            }
-            if(isset($data["data_type"]) && $data["data_type"] != "") {
-                $conds["data_type"] = $data["data_type"];
-            }
-            //$this->pr($data["file_ids"]);
-            
-            if(!empty($conds) && isset($data["file_ids"]) && !empty($data["file_ids"])) {
-                $exist_file_ids = $delete_file_ids = array();
-                //取得資料內所有file_id
-                $all_datas = UnshopFileData::where($conds)->get()->toArray();
-                //$this->pr($all_datas);
-                if(!empty($all_datas)) {
-                    foreach($all_datas as $all_data) {
-                        $file_id = isset($all_data["file_id"])?$all_data["file_id"]:0;
-                        if($file_id > 0) {
-                            if(!in_array($file_id,$data["file_ids"])) {
-                                $delete_file_ids[] = $file_id; //取得需要刪除的file_id
-                            } else {
-                                $exist_file_ids[] = $file_id; //取得需要存在的file_id
-                            }
-                        }
-                    }
-                }
-                //$this->pr($exist_file_ids);
-                //$this->pr($delete_file_ids);//exit;
-
-                
-                $isSuccess = true;
-                //刪除檔案
-                if(!empty($delete_file_ids)) {
-                    try {
-                        //DB::enableQueryLog();
-                        //刪除檔案資料
-                        $delete_data = UnshopFileData::whereIn("file_id",$delete_file_ids)->where($conds)->delete();
-                        //dd(DB::getQueryLog());
-                        //刪除檔案
-                        $delete = $this->deleteFile($delete_file_ids);
-
-                        if(!$delete_data || !$delete) {
-                            $isSuccess = false;
-                            $message = "刪除檔案失敗！";
-                        }
-                    } catch(QueryException $e) {
-                        $message = "刪除檔案錯誤！";
-                    }
-                }
-
-                //新增檔案
-                $insert_data = array();
-                $insert_data["data_id"] = $data["data_id"];
-                $insert_data["data_type"] = $data["data_type"];
-                $insert_data["create_by"] = isset($data["user_id"])?$data["user_id"]:0;
-                $insert_data["create_time"] = $now;
-                $insert_data["modify_by"] = $insert_data["create_by"];
-                $insert_data["modify_time"] = $insert_data["create_time"];
-
-                foreach($data["file_ids"] as $file_id) {
-                    if(!in_array($file_id,$exist_file_ids)) {
-                        $insert_data["file_id"] = $file_id;
-                        //DB::enableQueryLog();
-                        $file_data = UnshopFileData::create($insert_data);
-                        //dd(DB::getQueryLog());
-                        $file_data_id = (int)$file_data->id;
-
-                        if($file_data_id < 0) { 
-                            $isSuccess = false;
-                            $message = "新增失敗！";
-                        }
-                    }
-                }
-                if($isSuccess) {
-                    $error = false;
-                }
-            }
-        } else if($action_type == "delete") { //刪除
-            $data_ids = array();
-            if(isset($data["data_ids"]) && !empty($data["data_ids"])) { //多筆資料id
-                $data_ids = $data["data_ids"];
-            }
-
-            try {
-                //取得檔案ID(file_id)
-                $file_datas = UnshopFileData::whereIn("data_id",$data_ids);
-                $file_ids = $file_datas->pluck("file_id")->toArray();
-                //刪除檔案資料
-                $file_datas->delete();
-                //刪除檔案
-                $delete = $this->deleteFile($file_ids);
-                if($delete) {
-                    $error = false;
-                } else {
-                    $message = "刪除檔案錯誤！";
-                }
-            } catch(QueryException $e) {
-                $message = "刪除錯誤！";
-            }
-        }
-
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return $return_data;
-    }
 
     /**
      * 取得商品資料(unshop_product)
@@ -435,43 +218,10 @@ class Controller extends BaseController
      */
     public function getProductData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array(),$is_one=false)
     {
-        $datas = $all_datas = $conds = $conds_in = array();
-        
-        //條件欄位
-		$cols = array("id","uuid","user_id","types","is_display","is_delete");
-		foreach($cols as $col) {
-			if(isset($cond[$col])) {
-				if(is_array($cond[$col])) {
-					$conds_in[$col] = $cond[$col];
-				} else if($cond[$col] != "") {
-					if(is_numeric($cond[$col])) {
-						$conds[$col] = (int)$cond[$col];
-					} else {
-						$conds[$col] = $cond[$col];
-					}
-				}
-			}
-		}
-        $all_datas = UnshopProduct::where($conds);
-        //搜尋條件
-        if(!empty($conds_in)) {
-            foreach($conds_in as $key => $val) {
-                $all_datas = $all_datas->whereIn($key,$val);
-            }
-        }
-        //關鍵字
-        if(isset($cond["keywords"]) && $cond["keywords"] != "") {
-            $keywords = $cond["keywords"];
-            $conds_or = array("name","serial");
-            $all_datas = $all_datas->where(function ($query) use($conds_or,$keywords) {
-                foreach($conds_or as $value) {
-                    $query->orWhere($value,"like","%".$keywords."%");
-                }
-            });
-        }
-        //排序
-        $all_datas = $all_datas->orderBy($orderby,$sort);
-        //print_r($all_datas->toSql());
+        $datas = $all_datas = array();
+
+        //取得商品資料
+        $all_datas = UnshopProduct::getProduct($cond,$orderby,$sort);
 
         //取得分頁
         if($is_page) {
@@ -507,7 +257,7 @@ class Controller extends BaseController
                 $conds_file = array();
                 $conds_file["data_id"] = $id;
                 $conds_file["data_type"] = "product";
-                $file_datas = $this->getFileData($conds_file,true);
+                $file_datas = UnshopFileData::getFileData($conds_file,true);
                 //$this->pr($file_datas);
                 
                 //列表-只取一張圖片
@@ -656,32 +406,10 @@ class Controller extends BaseController
      */
     public function getCartData($cond=array(),$is_total=false)
     {
-        $datas = $all_datas = $conds = $conds_in = array();
+        $datas = $all_datas = array();
 
-        //條件欄位
-		$cols = array("user_id","product_id");
-		foreach($cols as $col) {
-			if(isset($cond[$col])) {
-				if(is_array($cond[$col])) {
-					$conds_in[$col] = $cond[$col];
-				} else if($cond[$col] != "") {
-					if(is_numeric($cond[$col])) {
-						$conds[$col] = (int)$cond[$col];
-					} else {
-						$conds[$col] = $cond[$col];
-					}
-				}
-			}
-		}
-        $all_datas = UnshopCart::where($conds);
-        //搜尋條件
-        if(!empty($conds_in)) {
-            foreach($conds_in as $key => $val) {
-                $all_datas = $all_datas->whereIn($key,$val);
-            }
-        }
-        //排序
-        $all_datas = $all_datas->orderBy("create_time","asc");
+        //取得購物車資料
+        $all_datas = UnshopCart::getCart($cond);
         //print_r($all_datas->toSql());
 
         //取得商品ID
@@ -749,43 +477,10 @@ class Controller extends BaseController
      */
     public function getOrderData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array(),$is_detail=false)
     {
-        $datas = $all_datas = $conds = $conds_in = array();
+        $datas = $all_datas = array();
         
-        //條件欄位
-		$cols = array("id","uuid","user_id","payment","send","status");
-		foreach($cols as $col) {
-			if(isset($cond[$col])) {
-				if(is_array($cond[$col])) {
-					$conds_in[$col] = $cond[$col];
-				} else if($cond[$col] != "") {
-					if(is_numeric($cond[$col])) {
-						$conds[$col] = (int)$cond[$col];
-					} else {
-						$conds[$col] = $cond[$col];
-					}
-				}
-			}
-		}
-        $all_datas = UnshopOrder::where($conds);
-        //搜尋條件
-        if(!empty($conds_in)) {
-            foreach($conds_in as $key => $val) {
-                $all_datas = $all_datas->whereIn($key,$val);
-            }
-        }
-        //關鍵字
-        if(isset($cond["keywords"]) && $cond["keywords"] != "") {
-            $keywords = $cond["keywords"];
-            $conds_or = array("serial");
-            $all_datas = $all_datas->where(function ($query) use($conds_or,$keywords) {
-                foreach($conds_or as $value) {
-                    $query->orWhere($value,"like","%".$keywords."%");
-                }
-            });
-        }
-        //排序
-        $all_datas = $all_datas->orderBy($orderby,$sort);
-        //print_r($all_datas->toSql());
+        //取得訂單資料
+        $all_datas = UnshopOrder::getOrder($cond,$orderby,$sort);
 
         //取得分頁
         if($is_page) {

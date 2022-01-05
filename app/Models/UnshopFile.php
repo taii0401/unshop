@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+//上傳檔案
+use Illuminate\Support\Facades\Storage;
+
 class UnshopFile extends Model
 {
     use HasFactory;
@@ -15,4 +18,34 @@ class UnshopFile extends Model
     protected $fillable = [
         'name','file_name','path','size','types',
     ];
+
+    /**
+     * 刪除檔案及實際路徑
+     * @param  file_ids：檔案ID
+     * @return boolean
+     */
+    public static function deleteFile($file_ids=array())
+    {
+        $isSuccess = true;
+        if(!empty($file_ids)) {
+            $file_datas = UnshopFile::whereIn("id",$file_ids)->get()->toArray();
+            if(!empty($file_datas)) {
+                foreach($file_datas as $file_data) {
+                    $file_id = isset($file_data["id"])?$file_data["id"]:"";
+                    //刪除檔案存放路徑
+                    $file_path = isset($file_data["path"])?$file_data["path"]:"";
+                    if(Storage::exists($file_path)) {
+                        Storage::delete($file_path);
+                    }
+                    //刪除檔案
+                    $destroy = UnshopFile::destroy($file_id);
+                    if(!$destroy) {
+                        $isSuccess = false;
+                    }
+                }
+            }
+        }
+
+        return $isSuccess;
+    }
 }

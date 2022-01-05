@@ -17,6 +17,7 @@ use App\Libraries\UserAuth;
 use App\Models\User;
 use App\Models\UnshopFile;
 use App\Models\UnshopUser;
+use App\Models\UnshopFileData;
 use App\Models\UnshopProduct;
 use App\Models\UnshopCart;
 use App\Models\UnshopOrder;
@@ -105,7 +106,7 @@ class AjaxController extends Controller
         }
         
         //刪除檔案
-        $delete = $this->deleteFile($file_ids);
+        $delete = UnshopFile::deleteFile($file_ids);
         if($delete) {
             $error = false;
         } else {
@@ -364,7 +365,7 @@ class AjaxController extends Controller
                     //商品類型代碼
                     $serial_code = isset($code_datas[$types])?$code_datas[$types]:"";
                     //取得新編號
-                    $serial_num = $this->getSerial("product",array("types"=>$types));
+                    $serial_num = UnshopProduct::getSerial($types);
 
                     $data["uuid"] = $uuid;
                     $data["user_id"] = $user_id;
@@ -400,7 +401,7 @@ class AjaxController extends Controller
                         $file_data["data_type"] = "product";
                         $file_data["file_ids"] = $request->input("file_id");
                         $file_data["user_id"] = $user_id;
-                        $result = $this->updateFileData($action_type,$file_data);
+                        $result = UnshopFileData::updateFileData($action_type,$file_data);
                         //$this->pr($result);exit;
                         if(isset($result["error"]) && !($result["error"])) {
                             $error = false;
@@ -438,7 +439,7 @@ class AjaxController extends Controller
                     //刪除上傳檔案
                     $file_data = array();
                     $file_data["data_ids"] = $product_ids;
-                    $result = $this->updateFileData($action_type,$file_data);
+                    $result = UnshopFileData::updateFileData($action_type,$file_data);
                     if(isset($result["error"]) && !($result["error"])) {
                         $error = false;
                     } else {
@@ -564,7 +565,7 @@ class AjaxController extends Controller
                     //UUID
                     $uuid = Str::uuid()->toString();
                     //取得新編號
-                    $serial_num = $this->getSerial("order");
+                    $serial_num = UnshopOrder::getSerial();
                     
                     $data["uuid"] = $uuid;
                     $data["user_id"] = $user_id;
