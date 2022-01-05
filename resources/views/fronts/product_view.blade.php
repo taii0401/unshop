@@ -154,7 +154,7 @@
                                 <input type="hidden" id="product_user_id" name="product_user_id" value="{{ @$assign_data["user_id"] }}">
                                 <input type="hidden" id="product_id" name="product_id" value="{{ @$assign_data["id"] }}">
                             </form>
-                            <table style="margin-top:15px">
+                            <table style="margin-top:15px; display:{{ @$assign_data["btn_none"] }};">
                                 <thead>
                                     <tr>
                                         <td><button type="button" class="btn btn-primary" onclick="cartSubmit('add')">加入購物車</button></td>
@@ -178,9 +178,11 @@
                     </div>
                     <div class="row">
                         <div class="col-12 col-sm-6">
+                            
+                        </div>
+                        <div class="col-12 col-sm-6 tm-btn-right">
                             <button type="button" class="btn btn-primary" onclick="changeForm('{{ @$assign_data["back_url"] }}')">返回</button>
                         </div>
-                        <div class="col-12 col-sm-6 tm-btn-right"></div>
                     </div>
                 </div>
             </div>

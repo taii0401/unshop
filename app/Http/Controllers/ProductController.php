@@ -111,7 +111,7 @@ class ProductController extends Controller
             $conds["is_delete"] = 0;
             $all_datas = $this->getProductData($conds);
             //資料
-            if(isset($all_datas["list_data"][0])) {
+            if(isset($all_datas["list_data"])) {
                 foreach($all_datas["list_data"] as $list_data) {
                     foreach($list_data as $key => $val) {
                         $data[$key] = $val;

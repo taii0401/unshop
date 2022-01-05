@@ -76,11 +76,11 @@
                         </div>
                         <div class="row">
                             <div class="col-12 col-sm-6">
+                                <button type="button" class="btn btn-danger" onclick="productSubmit('delete');" style="display:{{ @$assign_data["btn_none"] }}">刪除商品</button>
+                            </div>
+                            <div class="col-12 col-sm-6 tm-btn-right">
                                 <button type="button" class="btn btn-primary" onclick="productSubmit('{{ @$assign_data["action_type"] }}');">送出</button>
                                 <button type="button" class="btn btn-danger" onclick="changeForm('/products')">取消</button>
-                            </div>
-                            <div class="col-12 col-sm-6 tm-btn-right" style="display:{{ @$assign_data["btn_none"] }}">
-                                <button type="button" class="btn btn-danger" onclick="productSubmit('delete');">刪除商品</button>
                             </div>
                         </div>
 

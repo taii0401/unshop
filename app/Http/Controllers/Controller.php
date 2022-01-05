@@ -22,6 +22,7 @@ use App\Models\UnshopFileData;
 use App\Models\UnshopProduct;
 use App\Models\UnshopCart;
 use App\Models\UnshopOrder;
+use App\Models\UnshopOrderItem;
 
 class Controller extends BaseController
 {
@@ -69,6 +70,20 @@ class Controller extends BaseController
                 }
             }
         }
+
+        return $data;
+    }
+
+    /**
+     * 取得代碼資料名稱(unshop_code)
+     * @param  type：型態
+     * @return array
+     */
+    public function getCodeNames($type="")
+    {
+        $cond = array();
+        $cond["types"] = $type;
+        $data = $this->getData("code",$cond,"cname");
 
         return $data;
     }
@@ -145,17 +160,6 @@ class Controller extends BaseController
     {
         $data = array();
         switch($type) {
-            case "product_is_display": //是否顯示
-                $data[""] = "全部";
-                $data[1] = "是";
-                $data[0] = "否";
-                break;
-            case "product_orderby": //排序
-                $data["asc_serial"] = "編號 小 ~ 大";
-                $data["desc_serial"] = "編號 大 ~ 小";
-                $data["asc_sales"] = "售價 小 ~ 大";
-                $data["desc_sales"] = "售價 大 ~ 小";
-                break;
             case "code": //代碼
                 $conds = array();
                 $conds["types"] = $code_type;
@@ -172,6 +176,30 @@ class Controller extends BaseController
                         $data[$key] = $val;
                     }
                 }
+                break;
+            case "product_is_display": //是否顯示
+                $data[""] = "全部";
+                $data[1] = "是";
+                $data[0] = "否";
+                break;
+            case "product_orderby": //商品排序
+                $data["asc_serial"] = "編號 小 ~ 大";
+                $data["desc_serial"] = "編號 大 ~ 小";
+                $data["asc_sales"] = "售價 小 ~ 大";
+                $data["desc_sales"] = "售價 大 ~ 小";
+                break;
+            case "order_status": //訂單狀態
+                $data[""] = "全部";
+                $data[0] = "處理中";
+                $data[1] = "已付款";
+                $data[2] = "已寄送";
+                $data[3] = "已取消";
+                break;
+            case "order_orderby": //訂單排序
+                $data["asc_serial"] = "編號 小 ~ 大";
+                $data["desc_serial"] = "編號 大 ~ 小";
+                $data["asc_create_time"] = "日期 小 ~ 大";
+                $data["desc_create_time"] = "日期 大 ~ 小";
                 break;
         }
 
@@ -464,7 +492,7 @@ class Controller extends BaseController
             //是否顯示
             $option_datas["is_display"] = $this->getOptions("product_is_display");
             //代碼-類別
-            $option_datas["types"] = $this->getOptions("code","product_category",true);
+            $option_datas["types"] = $this->getCodeNames("product_category");
 
             foreach($list_data as $key => $val) {
                 $data = array();
@@ -600,7 +628,7 @@ class Controller extends BaseController
         if(isset($orderby) && $orderby != "") {
             $str = explode("_",$orderby);
             $orderby_sort = isset($str[0])?$str[0]:$orderby_sort;
-            $orderby_col = isset($str[1])?$str[1]:$orderby_col;
+            $orderby_col = isset($str[1])?str_replace($orderby_sort."_","",$orderby):$orderby_col;
         }
         //分頁條件
         $page_conds = array("search_link" => $search_link,"page" => $page);
@@ -676,6 +704,8 @@ class Controller extends BaseController
                 $product_id = isset($cart_data["product_id"])?$cart_data["product_id"]:0;
                 //商品資料
                 $product_data = isset($product_datas["list_data"][$product_id])?$product_datas["list_data"][$product_id]:array();
+                //商品明細連結
+                $product_data["product_link"] = "/fronts/product_view?source=cart&uuid=".$product_data["uuid"];
                 //購買數量
                 $amount = isset($cart_data["amount"])?$cart_data["amount"]:0;
                 $product_data["amount"] = $amount;
@@ -704,6 +734,146 @@ class Controller extends BaseController
         }
 
         //$this->pr($datas);
+        return $datas;
+    }
+
+    /**
+     * 取得訂單資料(unshop_order)
+     * @param  cond：搜尋條件
+     * @param  orderby：排序欄位
+     * @param  sort：排序-遞增、遞減
+     * @param  is_page：是否分頁
+     * @param  page_cond：分頁條件
+     * @param  is_detail：是否取得訂單詳細資料
+     * @return array
+     */
+    public function getOrderData($cond=array(),$orderby="serial",$sort="asc",$is_page=false,$page_cond=array(),$is_detail=false)
+    {
+        $datas = $all_datas = $conds = $conds_in = array();
+        
+        //條件欄位
+		$cols = array("id","uuid","user_id","payment","send","status");
+		foreach($cols as $col) {
+			if(isset($cond[$col])) {
+				if(is_array($cond[$col])) {
+					$conds_in[$col] = $cond[$col];
+				} else if($cond[$col] != "") {
+					if(is_numeric($cond[$col])) {
+						$conds[$col] = (int)$cond[$col];
+					} else {
+						$conds[$col] = $cond[$col];
+					}
+				}
+			}
+		}
+        $all_datas = UnshopOrder::where($conds);
+        //搜尋條件
+        if(!empty($conds_in)) {
+            foreach($conds_in as $key => $val) {
+                $all_datas = $all_datas->whereIn($key,$val);
+            }
+        }
+        //關鍵字
+        if(isset($cond["keywords"]) && $cond["keywords"] != "") {
+            $keywords = $cond["keywords"];
+            $conds_or = array("serial");
+            $all_datas = $all_datas->where(function ($query) use($conds_or,$keywords) {
+                foreach($conds_or as $value) {
+                    $query->orWhere($value,"like","%".$keywords."%");
+                }
+            });
+        }
+        //排序
+        $all_datas = $all_datas->orderBy($orderby,$sort);
+        //print_r($all_datas->toSql());
+
+        //取得分頁
+        if($is_page) {
+            $search_link = isset($page_cond["search_link"])?$page_cond["search_link"]:"";
+            $page = isset($page_cond["page"])?$page_cond["page"]:1;
+            //分頁資料
+            $page_data = $this->getPage($search_link,$page,$all_datas);
+            $datas["page_data"] = $page_data;
+            $list_data = isset($page_data["list_data"])?$page_data["list_data"]:array();
+        } else {
+            $list_data = $all_datas->get()->toArray();
+        }
+        //$this->pr($list_data);exit;
+        
+        if(!empty($list_data)) {
+            //選項
+            $option_datas = array();
+            //選項-狀態
+            $option_datas["status"] = $this->getOptions("order_status");
+            //代碼-配送方式
+            $option_datas["send"] = $this->getCodeNames("order_send");
+            //代碼-付款方式
+            $option_datas["payment"] = $this->getCodeNames("order_pay");
+
+            foreach($list_data as $key => $val) {
+                $data = array();
+                $data = $val;
+                $id = isset($val["id"])?$val["id"]:0;
+                $uuid = isset($val["uuid"])?$val["uuid"]:"";
+                //轉換名稱-狀態
+                $data["status_name"] = isset($option_datas["status"][$data["status"]])?$option_datas["status"][$data["status"]]:"";
+                //轉換名稱-配送方式
+                $data["send_name"] = isset($option_datas["send"][$data["send"]])?$option_datas["send"][$data["send"]]:"";
+                //轉換名稱-付款方式
+                $data["payment_name"] = isset($option_datas["payment"][$data["payment"]])?$option_datas["payment"][$data["payment"]]:"";
+
+                //取得訂單詳細資料
+                $item_datas = array();
+                if($is_detail) {
+                    $conds_item = array();
+                    $conds_item["order_id"] = $id;
+                    $order_item = UnshopOrderItem::where($conds_item);
+
+                    //取得商品ID
+                    $product_ids = $order_item->pluck("product_id")->toArray();
+                    //$this->pr($product_ids);exit;
+                    //取得訂單詳細資料
+                    $order_item_datas = $order_item->get()->toArray();
+                    //$this->pr($order_item_datas);exit;
+                        
+                    //取得商品資料
+                    $conds_product = array();
+                    $conds_product["id"] = $product_ids;
+                    $product_datas = $this->getProductData($conds_product,"serial","asc",false,array(),true);
+                    //$this->pr($product_datas);
+
+
+                    if(!empty($order_item_datas)) {
+                        foreach($order_item_datas as $order_item_data) {
+                            $item_data = array();
+                            $item_data = $order_item_data;
+                            $product_id = isset($order_item_data["product_id"])?$order_item_data["product_id"]:0;
+                            //商品資料
+                            $product_data = isset($product_datas["list_data"][$product_id])?$product_datas["list_data"][$product_id]:array();
+                            //商品UUID
+                            $item_data["uuid"] = isset($product_data["uuid"])?$product_data["uuid"]:"";
+                            //商品明細連結
+                            $item_data["product_link"] = "/fronts/product_view?source=order&order_uuid=".$uuid."&uuid=".$product_data["uuid"];
+                            //商品編號
+                            $item_data["serial"] = isset($product_data["serial"])?$product_data["serial"]:"";
+                            //商品名稱
+                            $item_data["name"] = isset($product_data["name"])?$product_data["name"]:"";
+                            //商品圖片
+                            $item_data["file_url"] = isset($product_data["file_url"])?$product_data["file_url"]:"";
+                            //小計
+                            $item_data["subtotal"] = isset($order_item_data["total"])?$order_item_data["total"]:"";
+
+                            $item_datas[] =  $item_data;
+                        }
+                    }
+                }
+
+                $datas["list_data"][$id] = $data;
+                $datas["list_data"][$id]["item_datas"] = $item_datas;
+            }
+        }
+        //$this->pr($datas);
+
         return $datas;
     }
 }

@@ -70,10 +70,17 @@ class FrontController extends Controller
         //商品UUID
         $uuid = $request->has("uuid")?$request->input("uuid"):""; 
         $assign_data["uuid"] = $uuid;
+        //按鈕-加入購物車
+        if($source == "order") { //訂單明細
+            $assign_data["btn_none"] = "none";
+        }
         //返回
         $assign_data["back_url"] = "/fronts";
         if($source == "cart") { //購物車
             $assign_data["back_url"] = "/orders/cart";
+        } else if($source == "order") { //訂單明細
+            $order_uuid = $request->has("order_uuid")?$request->input("order_uuid"):""; 
+            $assign_data["back_url"] = "/orders/detail?order_uuid=".$order_uuid;
         } else if($source == "my_page" && $short_link != "") { //我的頁面
             $assign_data["back_url"] = "/fronts/my_page/".$short_link;
         }

@@ -26,18 +26,21 @@
                             <th scope="col" class="text-center" style="width:8%;">數量</th>
                             <th scope="col" class="text-center" style="width:8%;">售價</th>
                             <th scope="col" class="text-center" style="width:10%;">小計</th>
-                            <th scope="col" class="text-center" style="width:8%;">刪除</th>
+                            <th scope="col" class="text-center" style="width:8%; display:{{ @$assign_data["order_none"] }};">刪除</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($datas as $data) 
                         <tr>
-                            <td class="text-center"><a href="#" target="_blank" class="tm-bg-blue tm-text-white tm-buy" onclick="changeForm('/fronts/product_view?source=cart&uuid={{ @$data["uuid"] }}');">{{ @$data["serial"] }}</a></td>
+                            <td class="text-center">
+                                <a href="#" target="_blank" class="tm-bg-blue tm-text-white tm-buy" onclick="changeForm('{{ @$data["product_link"] }}');">{{ @$data["serial"] }}</a>
+                            </td>
                             <td class="text-center"><img src="{{ @$data["file_url"] }}" width="auto" height="80px"></td>
                             <td class="tm-product-name">{{ @$data["name"] }}</td>
-                            <td class="text-center">
+                            <td class="text-center" style="display:{{ @$assign_data["order_none"] }};">
                                 <input type="number" min="0" id="amount_{{ @$data["id"] }}" name="amount[]" value="{{ @$data["amount"] }}" style="width: 50px;" onchange="cartChangeTotal('{{ @$data["id"] }}')">
                             </td>
+                            <td class="text-center" style="display:{{ @$assign_data["cart_none"] }};">{{ @$data["amount"] }}</td>
                             <td class="text-center">
                                 <input type="hidden" id="price_{{ @$data["id"] }}" value="{{ @$data["price"] }}">    
                                 {{ @$data["price"] }}
@@ -46,7 +49,7 @@
                                 <input type="hidden" id="subtotal_col_{{ @$data["id"] }}" name="subtotal[]" value="{{ @$data["subtotal"] }}">
                                 <span id="subtotal_{{ @$data["id"] }}">{{ @$data["subtotal"] }}</span>元
                             </td>
-                            <td class="text-center">
+                            <td class="text-center" style="display:{{ @$assign_data["order_none"] }};">
                                 <div class="col">
                                     <div class="btn-action">
                                         <i class="fas fa-trash-alt tm-trash-icon" onclick="$('#product_id').val('{{ @$data["id"] }}');cartSubmit('delete');"></i>
@@ -67,9 +70,12 @@
             </div>
             <div class="row">
                 <div class="col-12 col-sm-6"></div>
-                <div class="col-12 col-sm-6 tm-btn-right">
+                <div class="col-12 col-sm-6 tm-btn-right" style="display:{{ @$assign_data["order_none"] }};">
                     <button type="button" class="btn btn-primary" onclick="changeForm('/')">繼續購買</button>
                     <button type="button" class="btn btn-danger" style="display:{{ @$assign_data["btn_none"] }};" onclick="changeForm('/orders/pay')">結帳</button>
+                </div>
+                <div class="col-12 col-sm-6 tm-btn-right" style="display:{{ @$assign_data["cart_none"] }};">
+                    <button type="button" class="btn btn-primary" onclick="changeForm('/orders')">返回</button>
                 </div>
             </div>
         </div>

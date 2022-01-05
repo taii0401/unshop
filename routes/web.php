@@ -50,6 +50,9 @@ Route::get('/users/edit_password', [UserController::class, 'edit_password']);
 Route::post('/users/login', [UserController::class, 'login'])->name("users.login");
 
 
+Route::prefix('products')->name('products.')->group(function() {
+
+});
 
 //商品
 Route::get('/products', [ProductController::class, 'index']);
@@ -66,40 +69,20 @@ Route::get('/orders/cart', [OrderController::class, 'cart']);
 //購物車結帳
 Route::get('/orders/pay', [OrderController::class, 'pay']);
 //訂單明細
-Route::get('/orders/data', [OrderController::class, 'data']);
-
-//Route::get('/users', UserController::class);
-//Route::resource('product', ProductController::class);
-
-//檔案-上傳檔案
-Route::post('/ajax/upload_file', [AjaxController::class, 'upload_file']);
-//檔案-刪除檔案實際路徑
-Route::post('/ajax/upload_file_delete', [AjaxController::class, 'upload_file_delete']);
-//使用者資料-檢查帳號是否存在
-Route::post('/ajax/user_exist', [AjaxController::class, 'user_exist']);
-//使用者資料-檢查商品頁面網址是否存在
-Route::post('/ajax/user_link_exist', [AjaxController::class, 'user_link_exist']);
-//使用者資料-忘記密碼
-Route::post('/ajax/user_forget', [AjaxController::class, 'user_forget']);
-//使用者資料-新增、編輯、刪除
-Route::post('/ajax/user_data', [AjaxController::class, 'user_data']);
-//商品資料-新增、編輯、刪除
-Route::post('/ajax/product_data', [AjaxController::class, 'product_data']);
-//購物車-新增、編輯、刪除
-Route::post('/ajax/cart_data', [AjaxController::class, 'cart_data']);
-//訂單-新增、編輯、刪除
-Route::post('/ajax/order_data', [AjaxController::class, 'order_data']);
+Route::get('/orders/detail', [OrderController::class, 'detail']);
 
 
-/*Route::prefix('members')->name('members.')->group(function() {
-    //會員-新增、儲存
-    Route::resource('/',MemberController::class)->only(['create','store']);
-    //登出
-    Route::delete('session',[MemberSessionController::class,'delete'])->name('session.delete');
-    //登入-登入、登入結果
-    Route::resource('session',MemberSessionController::class)->only(['create','store']);
-});
-
-Route::prefix('controls')->name('controls.')->middleware('member.auth')->group(function() {
-    Route::get('/',['App\Http\Controllers\Controls\PageController','home'])->name('home');
-});*/
+//AJAX
+$ajaxs = array();
+$ajaxs[] = "upload_file"; //檔案-上傳檔案
+$ajaxs[] = "upload_file_delete"; //檔案-刪除檔案實際路徑
+$ajaxs[] = "user_exist"; //使用者資料-檢查帳號是否存在
+$ajaxs[] = "user_link_exist"; //使用者資料-檢查商品頁面網址是否存在
+$ajaxs[] = "user_forget"; //使用者資料-忘記密碼
+$ajaxs[] = "user_data"; //使用者資料-新增、編輯、刪除
+$ajaxs[] = "product_data"; //商品資料-新增、編輯、刪除
+$ajaxs[] = "cart_data"; //購物車-新增、編輯、刪除
+$ajaxs[] = "order_data"; //訂單-新增、編輯、刪除
+foreach($ajaxs as $ajax) {
+    Route::post('/ajax/'.$ajax, [AjaxController::class, $ajax]);
+}

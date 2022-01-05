@@ -22,6 +22,129 @@ class OrderController extends Controller
         } else {
             $user_uuid = session("userUuid");
         }
+
+        $search_link = "orders/";
+        $search_get_url = "";
+
+        $assign_data = $conds = array();
+        $assign_data["title_txt"] = "訂單管理";
+
+        $user_id = 0;
+        if($user_uuid != "") {
+            //使用者資料
+            $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
+            $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+        }
+        $conds["user_id"] = $user_id;
+        $assign_data["user_id"] = $user_id;
+
+        //選項
+        $option_datas = array();
+        //排序
+        $option_datas["orderby"] = $this->getOptions("order_orderby");
+
+        //取得目前頁數及搜尋條件
+        $search_datas = array("page","keywords","orderby");
+        foreach($search_datas as $search_data) {
+            if($request->has($search_data)) {
+                ${$search_data} = $request->input($search_data); //取得搜尋條件的值
+                $assign_data[$search_data] = ${$search_data}; //顯示資料
+                if(${$search_data} != "") {
+                    //搜尋條件
+                    if(in_array($search_data,array("keywords"))) {
+                        $conds[$search_data] = ${$search_data};
+                    }
+                    //加入搜尋連結
+                    if($search_data != "page") {
+                        if($search_get_url == "") {
+                            $search_get_url .= "?";
+                        } else {
+                            $search_get_url .= "&";
+                        }
+                        $search_get_url .= $search_data."=".${$search_data};
+                    }
+                }
+            } else {
+                //預設目前頁數和排序
+                if($search_data == "page") {
+                    ${$search_data} = 1;
+                } else if($search_data == "orderby") {
+                    ${$search_data} = "desc_serial";
+                } else {
+                    ${$search_data} = "";
+                }
+
+                $assign_data[$search_data] = ${$search_data}; //顯示資料
+            }
+        }
+        //$this->pr($conds);
+
+        $datas = array();
+        //排序
+        $orderby_sort = "asc";
+        $orderby_col = "serial";
+        if(isset($orderby) && $orderby != "") {
+            $str = explode("_",$orderby);
+            $orderby_sort = isset($str[0])?$str[0]:$orderby_sort;
+            $orderby_col = isset($str[1])?str_replace($orderby_sort."_","",$orderby):$orderby_col;
+        }
+        //分頁條件
+        $page_conds = array("search_link" => $search_link,"page" => $page);
+        //取得訂單資料
+        $all_datas = $this->getOrderData($conds,$orderby_col,$orderby_sort,true,$page_conds,true);
+        //分頁資料
+        $page_data = isset($all_datas["page_data"])?$all_datas["page_data"]:array();
+        //列表資料
+        $datas = isset($all_datas["list_data"])?$all_datas["list_data"]:array();
+        
+        return view("orders.index",["assign_data" => $assign_data,"option_datas" => $option_datas,"datas" => $datas,"page_data" => $page_data]);
+    }
+
+    //訂單明細資料
+    public function detail(Request $request) 
+    {
+        //判斷是否登入
+        if(!UserAuth::isLoggedIn()) {
+            //使用者登入
+            return redirect("users/");
+        } else {
+            $user_uuid = session("userUuid");
+        }
+
+        $assign_data = $datas = array();
+        $assign_data["title_txt"] = "訂單明細";
+        //來源
+        $assign_data["source"] = "order";
+        //顯示欄位
+        $assign_data["order_none"] = "none";
+        $assign_data["cart_none"] = "";
+
+        $user_id = 0;
+        if($user_uuid != "") {
+            //使用者資料
+            $unshop_user = UnshopUser::where(["uuid" => $user_uuid])->first()->toArray();
+            $user_id = isset($unshop_user["user_id"])?$unshop_user["user_id"]:0;
+        }
+        $assign_data["user_id"] = $user_id;
+
+       
+        //取得訂單資料
+        $conds = array();
+        $conds["uuid"] = $request->has("order_uuid")?$request->input("order_uuid"):"";
+        $all_datas = $this->getOrderData($conds,"serial","asc",false,array(),true);
+        //資料
+        if(isset($all_datas["list_data"])) {
+            foreach($all_datas["list_data"] as $list_data) {
+                foreach($list_data as $key => $val) {
+                    $assign_data[$key] = $val;
+                }
+            }
+        }
+
+        //訂單明細資料
+        $datas = isset($assign_data["item_datas"])?$assign_data["item_datas"]:array();
+        
+        return view("orders.data",["assign_data" => $assign_data,"datas" => $datas]);
     }
 
     //購物車
@@ -37,6 +160,11 @@ class OrderController extends Controller
 
         $assign_data = $datas = array();
         $assign_data["title_txt"] = "購物車";
+        //來源
+        $assign_data["source"] = "cart";
+        //顯示欄位
+        $assign_data["order_none"] = "";
+        $assign_data["cart_none"] = "none";
         //隱藏按鈕-結帳
         $assign_data["btn_none"] = "none";
 
@@ -69,7 +197,7 @@ class OrderController extends Controller
         $assign_data["total"] = $total;
         //$this->pr($datas);
         
-        return view("orders.cart",["assign_data" => $assign_data,"datas" => $datas]);
+        return view("orders.data",["assign_data" => $assign_data,"datas" => $datas]);
     }
 
     //購物車-結帳
