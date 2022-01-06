@@ -247,4 +247,29 @@ class OrderController extends Controller
         
         return view("orders.pay",["assign_data" => $assign_data,"option_datas" => $option_datas]);
     }
+
+    //購物車-結帳金流
+    public function pay_check(Request $request)
+    {
+        $assign_data = array();
+
+        $uuid = $request->has("order_uuid")?$request->input("order_uuid"):"";
+
+        //取得訂單資料
+        if($uuid != "") {
+            $conds = array();
+            $conds["uuid"] = $uuid;
+            $all_datas = $this->getOrderData($conds,"serial","asc",false,array(),true);
+            //資料
+            if(isset($all_datas["list_data"])) {
+                foreach($all_datas["list_data"] as $list_data) {
+                    foreach($list_data as $key => $val) {
+                        $assign_data[$key] = $val;
+                    }
+                }
+            }
+        }
+
+        return view("orders.pay_check",["assign_data" => $assign_data]);
+    }
 }
