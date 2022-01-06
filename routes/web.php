@@ -26,50 +26,62 @@ use App\Http\Controllers\OrderController;
 
 //首頁
 Route::get('/', [FrontController::class, 'index']);
-Route::get('/fronts', [FrontController::class, 'index']);
-//我的頁面
-Route::get('/fronts/my_page/{short_link}', [FrontController::class, 'my_page']);
-//我的頁面-商品檢視
-Route::get('/fronts/product_view', [FrontController::class, 'product_view']);
+//前台
+Route::prefix('fronts')->name('fronts.')->group(function() {
+    //首頁
+    Route::get('/', [FrontController::class, 'index']);
+    //我的頁面
+    Route::get('/my_page/{short_link}', [FrontController::class, 'my_page']);
+    //我的頁面-商品檢視
+    Route::get('/product_view', [FrontController::class, 'product_view']);
+});
 
 
-//登入
-Route::get('/users', [UserController::class, 'index']);
-//登出
-Route::get('/users/logout', [UserController::class, 'logout']);
-//忘記密碼
-Route::get('/users/forget', [UserController::class, 'forget']);
-//新增使用者
-Route::get('/users/create', [UserController::class, 'create']);
-//編輯使用者
-Route::get('/users/edit', [UserController::class, 'edit']);
-//編輯使用者密碼
-Route::get('/users/edit_password', [UserController::class, 'edit_password']);
+//會員管理
+Route::prefix('users')->name('users.')->group(function() {
+    //登入
+    Route::get('/', [UserController::class, 'index']);
+    //登出
+    Route::get('/logout', [UserController::class, 'logout']);
+    //忘記密碼
+    Route::get('/forget', [UserController::class, 'forget']);
+    //新增使用者
+    Route::get('/create', [UserController::class, 'create']);
+    //編輯使用者
+    Route::get('/edit', [UserController::class, 'edit']);
+    //編輯使用者密碼
+    Route::get('/edit_password', [UserController::class, 'edit_password']);    
+});
 
 //登入-送出
 Route::post('/users/login', [UserController::class, 'login'])->name("users.login");
 
 
+//商品管理
 Route::prefix('products')->name('products.')->group(function() {
-
+    //商品列表
+    Route::get('/', [ProductController::class, 'index']);
+    //新增商品
+    Route::get('/create', [ProductController::class, 'create']);
+    //編輯商品
+    Route::get('/edit', [ProductController::class, 'edit']);
 });
 
-//商品
-Route::get('/products', [ProductController::class, 'index']);
-//新增商品
-Route::get('/products/create', [ProductController::class, 'create']);
-//編輯商品
-Route::get('/products/edit', [ProductController::class, 'edit']);
 
+//訂單管理
+Route::prefix('orders')->name('orders.')->group(function() {
+    //訂單列表
+    Route::get('/', [OrderController::class, 'index']);
+    //購物車
+    Route::get('/cart', [OrderController::class, 'cart']);
+    //購物車結帳
+    Route::get('/pay', [OrderController::class, 'pay']);
+    //購物車結帳金流
+    Route::get('/pay_check', [OrderController::class, 'pay_check']);
+    //訂單明細
+    Route::get('/detail', [OrderController::class, 'detail']);
+});
 
-//訂單
-Route::get('/orders', [OrderController::class, 'index']);
-//購物車
-Route::get('/orders/cart', [OrderController::class, 'cart']);
-//購物車結帳
-Route::get('/orders/pay', [OrderController::class, 'pay']);
-//訂單明細
-Route::get('/orders/detail', [OrderController::class, 'detail']);
 
 
 //AJAX
