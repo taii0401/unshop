@@ -220,7 +220,7 @@ class OrderController extends Controller
         }
         $assign_data = $unshop_user;
         
-        $assign_data["title_txt"] = "付款方式";
+        $assign_data["title_txt"] = "收件人資料";
         $total = 0;
         if($user_id > 0) {
             //取得購物車資料

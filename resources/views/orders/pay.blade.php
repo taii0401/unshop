@@ -17,6 +17,7 @@
                         @csrf
                         <input type="hidden" id="action_type" name="action_type" value="add">
                         <input type="hidden" id="total" name="total" value="{{ @$assign_data["total"] }}">
+                        @php /*
                         <div class="row">
                             <div class="col-6">
                                 <label>選擇配送方式</label>
@@ -43,8 +44,9 @@
                                         @endforeach
                                     @endif
                                 </div>              
-                            </div>  
-                        </div>
+                            </div> 
+                        </div>*/ 
+                        @endphp
                         <div class="row">
                             <div class="col-6">
                                 <label>收件人-姓名</label>
@@ -61,7 +63,8 @@
                         </div> 
                         
                         <div class="row">
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12 col-sm-6"></div>
+                            <div class="col-12 col-sm-6 tm-btn-right">
                                 <button type="button" class="btn btn-primary" onclick="changeForm('/orders/cart');">上一步</button>
                                 <button type="button" class="btn btn-danger" onclick="orderSubmit('add')">下一步</button>
                             </div>
