@@ -72,7 +72,7 @@
                 <div class="col-12 col-sm-6"></div>
                 <div class="col-12 col-sm-6 tm-btn-right" style="display:{{ @$assign_data["order_none"] }};">
                     <button type="button" class="btn btn-primary" onclick="changeForm('/')">繼續購買</button>
-                    <button type="button" class="btn btn-danger" style="display:{{ @$assign_data["btn_none"] }};" onclick="changeForm('/orders/pay')">結帳</button>
+                    <button type="button" class="btn btn-danger" style="display:{{ @$assign_data["btn_none"] }};" onclick="changeForm('/orders/pay')">下一步</button>
                 </div>
                 <div class="col-12 col-sm-6 tm-btn-right" style="display:{{ @$assign_data["cart_none"] }};">
                     <button type="button" class="btn btn-primary" onclick="changeForm('/orders')">返回</button>
