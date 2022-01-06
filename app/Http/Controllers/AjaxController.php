@@ -25,11 +25,25 @@ use App\Models\UnshopOrderItem;
 
 class AjaxController extends Controller
 {
+    private function resetResult() 
+    {
+        $this->error = true;
+        $this->msg = "請確認資料！";
+    }
+
+    private function returnResult()
+    {
+        $return_data = array(
+            "error" => $this->error,
+            "message" => $this->message
+        );
+        return $return_data;
+    }
+
     //檔案-上傳檔案
     public function upload_file(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
         
         $name = $file_id = "";
         //判斷是否登入
@@ -74,23 +88,25 @@ class AjaxController extends Controller
                 $file_id = (int)$file_data->id;
 
                 if($file_id > 0) { //新增成功
-                    $error = false;
+                    $this->error = false;
                 } else {
                     //刪除檔案存放路徑
                     $file_path = "public/files/".$user_id."/".$file_name;
                     if(Storage::exists($file_path)) {
                         Storage::delete($file_path);
                     }
-                    $message = "新增檔案錯誤！";
+                    $this->message = "新增檔案錯誤！";
                 }
             } catch(QueryException $e) {
-                $message = "新增檔案錯誤！";
+                $this->message = "新增檔案錯誤！";
             }
         } else {
-            $message = "沒有權限上傳檔案！";
+            $this->message = "沒有權限上傳檔案！";
         }
 
-        $return_data = array("error" => $error,"message" => $message,"file_name" => $name,"file_id" => $file_id);
+        $return_data = $this->returnResult();
+        $return_data["file_name"] = $name;
+        $return_data["file_id"] = $file_id;
         //print_r($return_data);
         return response()->json($return_data);
     }
@@ -98,8 +114,7 @@ class AjaxController extends Controller
     //檔案-刪除檔案
     public function upload_file_delete(Request $request,$file_ids=array())
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
 
         if(empty($file_ids)) {
             $file_ids = $request->has("file_id")?array($request->input("file_id")):array();
@@ -108,45 +123,39 @@ class AjaxController extends Controller
         //刪除檔案
         $delete = UnshopFile::deleteFile($file_ids);
         if($delete) {
-            $error = false;
+            $this->error = false;
         } else {
-            $message = "刪除檔案錯誤！";
+            $this->message = "刪除檔案錯誤！";
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //使用者資料-檢查帳號是否存在
     public function user_exist(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
         
         if($request->has("username") && trim($request->username) != "") {
             $username = trim($request->username);
             $count = User::where(["email" => $username])->count();
             if($count == 0) {
-                $error = false;
-                $message = "帳號可新增！";
+                $this->error = false;
+                $this->message = "帳號可新增！";
             } else {
-                $message = "帳號已存在！";
+                $this->message = "帳號已存在！";
             }
         } else {
-            $message = "請輸入帳號！";
+            $this->message = "請輸入帳號！";
         }
         
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //使用者資料-檢查商品頁面網址是否存在
     public function user_link_exist(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
 
         if($request->has("short_link") && trim($request->short_link) != "") {
             $short_link = trim($request->short_link);
@@ -157,25 +166,22 @@ class AjaxController extends Controller
             }
 
             if($count == 0) {
-                $error = false;
-                $message = "商品頁面網址可新增！";
+                $this->error = false;
+                $this->message = "商品頁面網址可新增！";
             } else {
-                $message = "商品頁面網址已存在！";
+                $this->message = "商品頁面網址已存在！";
             }
         } else {
-            $message = "請輸入商品頁面網址！";
+            $this->message = "請輸入商品頁面網址！";
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //使用者資料-忘記密碼
     public function user_forget(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
 
         if($request->has("username") && trim($request->username) != "") {
             try {
@@ -189,26 +195,23 @@ class AjaxController extends Controller
                     $data["password"] = Hash::make($ran_str);
                     User::where(["email" => $username])->update($data);
 
-                    $error = false;
-                    $message = "密碼：".$ran_str."  請重新登入後，至修改密碼更新！";
+                    $this->error = false;
+                    $this->message = "密碼：".$ran_str."  請重新登入後，至修改密碼更新！";
                 }
             } catch(QueryException $e) {
-                $message = "請確認帳號！";
+                $this->message = "請確認帳號！";
             }
         } else {
-            $message = "請輸入帳號！";
+            $this->message = "請輸入帳號！";
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //使用者資料-新增、編輯、刪除
     public function user_data(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
 
         //建立時間
         $now = date("Y-m-d H:i:s");
@@ -221,7 +224,7 @@ class AjaxController extends Controller
             $post_password = $request->has("password")?trim($request->input("password")):"";
 
             if($post_username == "" || $post_password == "") {
-                $message = "請輸入帳號密碼！";
+                $this->message = "請輸入帳號密碼！";
             } else {
                 //新增使用者
                 $user_id = UserAuth::createUser($post_username,$post_password);
@@ -245,14 +248,14 @@ class AjaxController extends Controller
                     //print_r($user_data->id);exit;
 
                     if((int)$user_data->id > 0) { //新增成功
-                        $error = false;
+                        $this->error = false;
                     } else {
                         //刪除使用者
                         User::destroy($user_id);
-                        $message = "新增錯誤！";
+                        $this->message = "新增錯誤！";
                     }
                 } else {
-                    $message = "新增帳號密碼錯誤！";
+                    $this->message = "新增帳號密碼錯誤！";
                 }
             }
         } else {
@@ -273,9 +276,9 @@ class AjaxController extends Controller
                         $data["address"] = $request->has("address")?$request->input("address"):"";
                         $data["modify_time"] = $now;
                         UnshopUser::where(["uuid" => $uuid])->update($data);
-                        $error = false;
+                        $this->error = false;
                     } catch(QueryException $e) {
-                        $message = "更新錯誤！";
+                        $this->message = "更新錯誤！";
                     }
                 } else if($action_type == "edit_password") { //編輯使用者密碼
                     //取得登入者
@@ -283,19 +286,19 @@ class AjaxController extends Controller
                     //檢查密碼是否符合
                     if(!empty($user) && $request->has("password") && $request->has("confirm_password")) {
                         if(trim($request->input("password")) == $user->password) {
-                            $message = "密碼尚未修改！";
+                            $this->message = "密碼尚未修改！";
                         } else {
                             try {
                                 if(trim($request->input("password")) == trim($request->input("confirm_password"))) {
                                     $data = array();
                                     $data["password"] = Hash::make(trim($request->input("password")));
                                     User::where(["id" => $user_id])->update($data);
-                                    $error = false;
+                                    $this->error = false;
                                 } else {
-                                    $message = "密碼與確認密碼不符合！";
+                                    $this->message = "密碼與確認密碼不符合！";
                                 }
                             } catch(QueryException $e) {
-                                $message = "更新密碼錯誤！";
+                                $this->message = "更新密碼錯誤！";
                             }
                         }
                     }
@@ -306,24 +309,21 @@ class AjaxController extends Controller
                         $data["modify_time"] = $now;
                         UnshopUser::where(["uuid" => $uuid])->update($data);
                         User::destroy($user_id);
-                        $error = false;
+                        $this->error = false;
                     } catch(QueryException $e) {
-                        $message = "刪除錯誤！";
+                        $this->message = "刪除錯誤！";
                     }
                 }
             }
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //商品資料-新增、編輯、刪除
     public function product_data(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
         
         //使用者ID
         $user_id = $request->has("user_id")?$request->user_id:0;
@@ -378,7 +378,7 @@ class AjaxController extends Controller
                     try {
                         $product_data = UnshopProduct::create($data);
                     } catch(QueryException $e) {
-                        $message = "新增錯誤！";
+                        $this->message = "新增錯誤！";
                     }
                 } else if($action_type == "edit") { //編輯
                     $uuid = $request->has("uuid")?$request->input("uuid"):"";
@@ -386,7 +386,7 @@ class AjaxController extends Controller
                         UnshopProduct::where(["uuid" => $uuid,"user_id" => $user_id])->update($data);
                         $product_data = UnshopProduct::where(["uuid" => $uuid,"user_id" => $user_id])->first("id");
                     } catch(QueryException $e) {
-                        $message = "更新錯誤！";
+                        $this->message = "更新錯誤！";
                     }
                 }
                 //$this->pr($product_data->id);
@@ -404,17 +404,17 @@ class AjaxController extends Controller
                         $result = UnshopFileData::updateFileData($action_type,$file_data);
                         //$this->pr($result);exit;
                         if(isset($result["error"]) && !($result["error"])) {
-                            $error = false;
-                            $message = $uuid;
+                            $this->error = false;
+                            $this->message = $uuid;
                         } else {
-                            $message = isset($result["message"])?$result["message"]:"檔案儲存錯誤！";
+                            $this->message = isset($result["message"])?$result["message"]:"檔案儲存錯誤！";
                         }
                     } else {
-                        $error = false;
-                        $message = $uuid;
+                        $this->error = false;
+                        $this->message = $uuid;
                     }
                 } else {
-                    $message = "新增或更新錯誤！";
+                    $this->message = "新增或更新錯誤！";
                 }
             } else if($action_type == "delete" || $action_type == "delete_list") { //刪除
                 $uuids = array();
@@ -441,28 +441,25 @@ class AjaxController extends Controller
                     $file_data["data_ids"] = $product_ids;
                     $result = UnshopFileData::updateFileData($action_type,$file_data);
                     if(isset($result["error"]) && !($result["error"])) {
-                        $error = false;
+                        $this->error = false;
                     } else {
-                        $message = isset($result["message"])?$result["message"]:"檔案刪除錯誤！";
+                        $this->message = isset($result["message"])?$result["message"]:"檔案刪除錯誤！";
                     }
                 } catch(QueryException $e) {
-                    $message = "刪除錯誤！";
+                    $this->message = "刪除錯誤！";
                 }
             }
         } else {
-            $message = "沒有權限！";
+            $this->message = "沒有權限！";
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //購物車-新增、編輯、刪除
     public function cart_data(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
 
         //判斷是否登入
         if(UserAuth::isLoggedIn()) {
@@ -490,7 +487,7 @@ class AjaxController extends Controller
                         //販賣商品的使用者
                         $product_user_id = $request->has("product_user_id")?$request->input("product_user_id"):0;
                         if($product_user_id == $user_id) {
-                            $message = "無法購買自己的商品！";
+                            $this->message = "無法購買自己的商品！";
                         } else {
                             //新增商品至購物車
                             $data["user_id"] = $user_id;
@@ -501,46 +498,43 @@ class AjaxController extends Controller
                             
                             try {
                                 UnshopCart::create($data);
-                                $error = false;
+                                $this->error = false;
                             } catch(QueryException $e) {
-                                $error = false;
-                                $message = "商品已存在！";
+                                $this->error = false;
+                                $this->message = "商品已存在！";
                             }
                         }
                     } else if($action_type == "edit") { //編輯-更新數量
                         $data["amount"] = $request->has("amount")?$request->input("amount"):1;
                         try {
                             UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->update($data);
-                            $error = false;
+                            $this->error = false;
                         } catch(QueryException $e) {
-                            $message = "更新錯誤！";
+                            $this->message = "更新錯誤！";
                         }
                     } else if($action_type == "delete") { //刪除
                         try {
                             UnshopCart::where(["user_id" => $user_id,"product_id" => $product_id])->delete();
-                            $error = false;
+                            $this->error = false;
                         } catch(QueryException $e) {
-                            $message = "刪除錯誤！";
+                            $this->message = "刪除錯誤！";
                         }
                     }
                 } else {
-                    $message = "無此商品！";
+                    $this->message = "無此商品！";
                 }
             }
         } else {
-            $message = "請先登入！";
+            $this->message = "請先登入！";
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 
     //訂單-新增、編輯、刪除
     public function order_data(Request $request)
     {
-        $error = true;
-        $message = "請確認資料！";
+        $this->resetResult();
         
         //判斷是否登入
         if(UserAuth::isLoggedIn()) {
@@ -585,7 +579,7 @@ class AjaxController extends Controller
                         $order_data = UnshopOrder::create($data);
                         $isSuccess = true;
                     } catch(QueryException $e) {
-                        $message = "新增錯誤！";
+                        $this->message = "新增錯誤！";
                     }
 
                     //新增成功
@@ -618,28 +612,26 @@ class AjaxController extends Controller
                     if($isSuccess) {
                         try {
                             UnshopCart::where(["user_id" => $user_id])->delete();
-                            $error = false;
-                            $message = $uuid;
+                            $this->error = false;
+                            $this->message = $uuid;
                         } catch(QueryException $e) {
-                            $message = "刪除購物車錯誤！";
+                            $this->message = "刪除購物車錯誤！";
                         }
                     }
                 } else if($action_type == "edit") { //編輯-更新狀態
                     $uuid = $request->has("uuid")?$request->input("uuid"):"";
                     try {
                         UnshopCart::where(["uuid" => $uuid])->update($data);
-                        $error = false;
+                        $this->error = false;
                     } catch(QueryException $e) {
-                        $message = "更新錯誤！";
+                        $this->message = "更新錯誤！";
                     }
                 }
             }
         } else {
-            $message = "請先登入！";
+            $this->message = "請先登入！";
         }
 
-        $return_data = array("error" => $error,"message" => $message);
-        //print_r($return_data);
-        return response()->json($return_data);
+        return response()->json($this->returnResult());
     }
 }
