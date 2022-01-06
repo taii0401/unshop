@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="{{ mix('css/bootstrap.min.css') }}">
     <!-- 模版 -->
     <link rel="stylesheet" href="{{ mix('css/tooplate.css') }}">
+    <!-- 日期 -->
+    <link rel="stylesheet" href="{{ mix('css/bootstrap-datepicker.css') }}">
     @yield('css')
 </head>
 
@@ -28,5 +30,8 @@
 <script src="{{ mix('js/popper.min.js') }}"></script>
 <script src="{{ mix('js/bootstrap.min.js') }}"></script>
 <script src="{{ mix('js/common.js') }}"></script>
+<!-- 日期 -->
+<script src="{{ mix('js/bootstrap-datepicker.min.js') }}"></script>
+<script src="{{ mix('js/bootstrap-datepicker.zh-TW.min.js') }}"></script>
 @yield('script')
 </html>
