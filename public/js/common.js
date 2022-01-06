@@ -662,8 +662,10 @@ function orderSubmit(action_type) {
             if(response.error == false) {
                 if(action_type == 'add') { //新增
                     uuid = response.message;
-                    alert("購買成功！");
-                    changeForm('/orders/detail?order_uuid='+uuid);
+                    changeForm('/orders/pay_check?order_uuid='+uuid);
+
+                    //alert("購買成功！");
+                    //changeForm('/orders/detail?order_uuid='+uuid);
                 }
             } else if(response.error == true) {
                 showMsg('msg_error',response.message,false);
