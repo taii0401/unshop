@@ -28,7 +28,7 @@ class AjaxController extends Controller
     private function resetResult() 
     {
         $this->error = true;
-        $this->msg = "請確認資料！";
+        $this->message = "請確認資料！";
     }
 
     private function returnResult()
@@ -527,7 +527,7 @@ class AjaxController extends Controller
         } else {
             $this->message = "請先登入！";
         }
-
+        
         return response()->json($this->returnResult());
     }
 
