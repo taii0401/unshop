@@ -22,6 +22,7 @@ class UnshopOrder extends Model
      */
     public static function getSerial()
     {
+        $serial_num = 0;
         $data = UnshopOrder::orderBy("serial_num","desc")->first("serial_num");
         if(isset($data) && $data->exists("serial_num")) {
             $serial_num = $data->serial_num;
@@ -42,7 +43,7 @@ class UnshopOrder extends Model
         $all_datas = $conds = $conds_in = array();
         
         //條件欄位
-		$cols = array("id","uuid","user_id","payment","send","status");
+		$cols = array("id","uuid","user_id","serial","payment","send","status");
 		foreach($cols as $col) {
 			if(isset($cond[$col])) {
 				if(is_array($cond[$col])) {

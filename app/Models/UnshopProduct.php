@@ -23,6 +23,7 @@ class UnshopProduct extends Model
      */
     public static function getSerial($types)
     {
+        $serial_num = 0;
         $data = UnshopProduct::where(["types" => $types])->orderBy("serial_num","desc")->first("serial_num");
         if(isset($data) && $data->exists("serial_num")) {
             $serial_num = $data->serial_num;
