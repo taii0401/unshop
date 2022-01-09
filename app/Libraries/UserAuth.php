@@ -45,19 +45,40 @@ class UserAuth {
         return !empty(self::userdata());
     }
 
+    //自動登入
+    public static function userLogIn($user_id=0) {
+        if($user_id > 0) {
+            $user = User::where(["id" => $user_id])->first();
+            $user_email = $user->email;
+            $user_pass = $user->password;
+            UserAuth::logIn($user_email,$user_pass,false);
+        }
+    }
+
     //登入
-    public static function logIn($post_username,$post_password) {
+    public static function logIn($post_username,$post_password,$is_hash=true) {
         $isSuccess = false;
         //取得登入者
         $user = User::where(["email" => $post_username])->first();
         //檢查密碼是否符合
-        if(!empty($user) && Hash::check($post_password,$user->password)) {
-            $unshop_user = UnshopUser::where(["user_id" => $user->id])->first();
-            //設定session
-            if(isset($unshop_user->uuid) && $unshop_user->uuid != "") {
-                $isSuccess = true;
-                self::$userdata = $unshop_user;
-                session(["userUuid" => $unshop_user->uuid]);
+        if(!empty($user)) {
+            $is_match = false;
+            if($is_hash) {
+                $is_match = Hash::check($post_password,$user->password);
+            } else {
+                if($post_password == $user->password) {
+                    $is_match = true;
+                }
+            }
+
+            if($is_match) {
+                $unshop_user = UnshopUser::where(["user_id" => $user->id])->first();
+                //設定session
+                if(isset($unshop_user->uuid) && $unshop_user->uuid != "") {
+                    $isSuccess = true;
+                    self::$userdata = $unshop_user;
+                    session(["userUuid" => $unshop_user->uuid]);
+                }
             }
         }
 
