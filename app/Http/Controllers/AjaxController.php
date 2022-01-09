@@ -563,9 +563,9 @@ class AjaxController extends Controller
                     
                     $data["uuid"] = $uuid;
                     $data["user_id"] = $user_id;
-                    $data["serial_code"] = "U";
+                    $data["serial_code"] = "UO";
                     $data["serial_num"] = $serial_num;
-                    $data["serial"] = "U".str_pad($serial_num,4,0,STR_PAD_LEFT); //訂單編號
+                    $data["serial"] = "UO".str_pad($serial_num,4,0,STR_PAD_LEFT); //訂單編號
                     $data["name"] = $request->has("name")?$request->input("name"):"";
                     $data["phone"] = $request->has("phone")?$request->input("phone"):"";
                     $data["address"] = $request->has("address")?$request->input("address"):"";

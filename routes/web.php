@@ -72,14 +72,23 @@ Route::prefix('products')->name('products.')->group(function() {
 Route::prefix('orders')->name('orders.')->group(function() {
     //訂單列表
     Route::get('/', [OrderController::class, 'index']);
-    //購物車
-    Route::get('/cart', [OrderController::class, 'cart']);
-    //購物車結帳
-    Route::get('/pay', [OrderController::class, 'pay']);
-    //購物車結帳金流
-    Route::get('/pay_check', [OrderController::class, 'pay_check']);
     //訂單明細
     Route::get('/detail', [OrderController::class, 'detail']);
+    //購物車
+    Route::get('/cart', [OrderController::class, 'cart']);
+    //購物車-收件人資料
+    Route::get('/pay', [OrderController::class, 'pay']);
+    //購物車結帳
+    Route::get('/pay_check', [OrderController::class, 'pay_check']);
+    //購物車結帳-串接金流
+    //串接金流-回傳是否成功
+    Route::post('/mpg_return', [OrderController::class, 'mpg_return']);
+    //串接金流-按鈕觸發是否付款
+    Route::post('/notify', [OrderController::class, 'notify']);
+    //串接金流-待客戶付款
+    Route::post('/customer', [OrderController::class, 'customer']);
+     //購物車結帳-結果
+    Route::get('/pay_result', [OrderController::class, 'pay_result']);
 });
 
 

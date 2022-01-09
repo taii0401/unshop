@@ -16,6 +16,38 @@
                     <h2 class="tm-block-title">{{ @$assign_data["title_txt"] }}</h2>
                 </div>
             </div>
+            <div class="table-responsive" style="display:{{ @$assign_data["cart_none"] }};">
+                <div id="msg_error" class="col-12 alert alert-danger" role="alert" style="display:{{ @$assign_data["danger_none"] }};">交易失敗</div>
+                <div id="msg_success" class="col-12 alert alert-success" role="alert" style="display:{{ @$assign_data["success_none"] }};">交易成功</div>
+                <table class="table table-hover table-striped tm-table-striped-even mt-3"  style="vertical-align: middle;">
+                    <thead>
+                        <tr>
+                            <th class="text-center tm-bg-gray">訂單編號：</th>
+                            <th>{{ @$assign_data["serial"] }}</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center tm-bg-gray">訂購日期：</th>
+                            <th>{{ @$assign_data["create_time"] }}</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center tm-bg-gray">訂單狀態：</th>
+                            <th>{{ @$assign_data["status_name"] }}</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center tm-bg-gray">配送方式：</th>
+                            <th>{{ @$assign_data["send_name"] }}</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center tm-bg-gray">付款方式：</th>
+                            <th>{{ @$assign_data["payment_name"] }}</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center tm-bg-gray">訂購金額：</th>
+                            <th>{{ @$assign_data["total"] }}元</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
             <div class="table-responsive">
                 <table class="table table-hover table-striped tm-table-striped-even mt-3"  style="vertical-align: middle;">
                     <thead>

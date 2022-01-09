@@ -17,36 +17,6 @@
                         @csrf
                         <input type="hidden" id="action_type" name="action_type" value="add">
                         <input type="hidden" id="total" name="total" value="{{ @$assign_data["total"] }}">
-                        @php /*
-                        <div class="row">
-                            <div class="col-6">
-                                <label>選擇配送方式</label>
-                                <div class="col-12">
-                                    @if(isset($option_datas["send"]))    
-                                        @foreach($option_datas["send"] as $key => $val) 
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="send" id="send_{{ @$key }}" value="{{ @$key }}" @if($assign_data["send"] == $key) checked @endif >
-                                            <label class="form-check-label" for="inlineRadio1">{{ @$val }}</label>
-                                        </div>
-                                        @endforeach
-                                    @endif
-                                </div>              
-                            </div> 
-                            <div class="col-6">
-                                <label>選擇付款方式</label>
-                                <div class="col-12">
-                                    @if(isset($option_datas["payment"]))    
-                                        @foreach($option_datas["payment"] as $key => $val) 
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="payment" id="payment_{{ @$key }}" value="{{ @$key }}" @if($assign_data["payment"] == $key) checked @endif >
-                                            <label class="form-check-label" for="inlineRadio1">{{ @$val }}</label>
-                                        </div>
-                                        @endforeach
-                                    @endif
-                                </div>              
-                            </div> 
-                        </div>*/ 
-                        @endphp
                         <div class="row">
                             <div class="col-6">
                                 <label>收件人-姓名</label>

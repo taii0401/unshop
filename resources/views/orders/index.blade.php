@@ -91,10 +91,10 @@
                         <tr class="tm-bg-gray">
                             <th scope="col" class="text-center" style="width:15%;">訂單編號</th>
                             <th scope="col" class="text-center">訂購日期</th>
-                            <th scope="col" class="text-center" style="width:12%;">狀態</th>
+                            <th scope="col" class="text-center" style="width:12%;">訂單狀態</th>
                             <th scope="col" class="text-center" style="width:12%;">配送方式</th>
                             <th scope="col" class="text-center" style="width:12%;">付款方式</th>
-                            <th scope="col" class="text-center" style="width:12%;">金額</th>
+                            <th scope="col" class="text-center" style="width:12%;">訂購金額</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,7 +106,13 @@
                             <td class="text-center">{{ @$data["create_time"] }}</td>
                             <td class="text-center">{{ @$data["status_name"] }}</td>
                             <td class="text-center">{{ @$data["send_name"] }}</td>
+                            @if(isset($data["payment"]) && $data["payment"] == 0)
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger" onclick="changeForm('/orders/pay_check?order_uuid={{ @$data["uuid"] }}')">結帳</button>
+                            </td>
+                            @else
                             <td class="text-center">{{ @$data["payment_name"] }}</td>
+                            @endif
                             <td class="text-center">{{ @$data["total"] }}元</td>
                         </tr>
                         @endforeach

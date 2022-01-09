@@ -58,8 +58,14 @@ class Controller extends BaseController
 
         if(!empty($get_datas)) {
             foreach($get_datas as $get_data) {
-                //ID
-                $id = isset($get_data["id"])?$get_data["id"]:"";
+                if($type == "code") { //代碼
+                    //code
+                    $id = isset($get_data["code"])?$get_data["code"]:"";
+                } else {
+                    //ID
+                    $id = isset($get_data["id"])?$get_data["id"]:"";
+                }
+                
                 
                 if($id != "") {
                     if($return_col != "") {
@@ -513,9 +519,9 @@ class Controller extends BaseController
                 //轉換名稱-狀態
                 $data["status_name"] = isset($option_datas["status"][$data["status"]])?$option_datas["status"][$data["status"]]:"";
                 //轉換名稱-配送方式
-                $data["send_name"] = isset($option_datas["send"][$data["send"]])?$option_datas["send"][$data["send"]]:"";
+                $data["send_name"] = isset($option_datas["send"][$data["send"]])?$option_datas["send"][$data["send"]]:"尚未選擇";
                 //轉換名稱-付款方式
-                $data["payment_name"] = isset($option_datas["payment"][$data["payment"]])?$option_datas["payment"][$data["payment"]]:"";
+                $data["payment_name"] = isset($option_datas["payment"][$data["payment"]])?$option_datas["payment"][$data["payment"]]:"尚未付款";
 
                 //取得訂單詳細資料
                 $item_datas = array();
