@@ -33,7 +33,7 @@ class UnshopFileData extends Model
     {
         $data = array();
         //取得檔案資料
-        $file_datas = UnshopFileData::where($cond)->orderBy($orderby,$sort)->get()->toArray();
+        $file_datas = self::where($cond)->orderBy($orderby,$sort)->get()->toArray();
         //$this->pr($file_datas);exit;
         if(!empty($file_datas)) {
             foreach($file_datas as $file_data) {
@@ -93,7 +93,7 @@ class UnshopFileData extends Model
             if(!empty($conds) && isset($data["file_ids"]) && !empty($data["file_ids"])) {
                 $exist_file_ids = $delete_file_ids = array();
                 //取得資料內所有file_id
-                $all_datas = UnshopFileData::where($conds)->get()->toArray();
+                $all_datas = self::where($conds)->get()->toArray();
                 //$this->pr($all_datas);
                 if(!empty($all_datas)) {
                     foreach($all_datas as $all_data) {
@@ -117,7 +117,7 @@ class UnshopFileData extends Model
                     try {
                         //DB::enableQueryLog();
                         //刪除檔案資料
-                        $delete_data = UnshopFileData::whereIn("file_id",$delete_file_ids)->where($conds)->delete();
+                        $delete_data = self::whereIn("file_id",$delete_file_ids)->where($conds)->delete();
                         //dd(DB::getQueryLog());
                         //刪除檔案
                         $delete = UnshopFile::deleteFile($delete_file_ids);
@@ -144,7 +144,7 @@ class UnshopFileData extends Model
                     if(!in_array($file_id,$exist_file_ids)) {
                         $insert_data["file_id"] = $file_id;
                         //DB::enableQueryLog();
-                        $file_data = UnshopFileData::create($insert_data);
+                        $file_data = self::create($insert_data);
                         //dd(DB::getQueryLog());
                         $file_data_id = (int)$file_data->id;
 
@@ -166,7 +166,7 @@ class UnshopFileData extends Model
 
             try {
                 //取得檔案ID(file_id)
-                $file_datas = UnshopFileData::whereIn("data_id",$data_ids);
+                $file_datas = self::whereIn("data_id",$data_ids);
                 $file_ids = $file_datas->pluck("file_id")->toArray();
                 //刪除檔案資料
                 $file_datas->delete();

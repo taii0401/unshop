@@ -40,7 +40,7 @@ class UnshopCart extends Model
 				}
 			}
 		}
-        $all_datas = UnshopCart::where($conds);
+        $all_datas = self::where($conds);
         //搜尋條件
         if(!empty($conds_in)) {
             foreach($conds_in as $key => $val) {

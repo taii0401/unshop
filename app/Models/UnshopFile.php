@@ -28,7 +28,7 @@ class UnshopFile extends Model
     {
         $isSuccess = true;
         if(!empty($file_ids)) {
-            $file_datas = UnshopFile::whereIn("id",$file_ids)->get()->toArray();
+            $file_datas = self::whereIn("id",$file_ids)->get()->toArray();
             if(!empty($file_datas)) {
                 foreach($file_datas as $file_data) {
                     $file_id = isset($file_data["id"])?$file_data["id"]:"";
@@ -38,7 +38,7 @@ class UnshopFile extends Model
                         Storage::delete($file_path);
                     }
                     //刪除檔案
-                    $destroy = UnshopFile::destroy($file_id);
+                    $destroy = self::destroy($file_id);
                     if(!$destroy) {
                         $isSuccess = false;
                     }

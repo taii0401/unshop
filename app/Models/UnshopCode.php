@@ -13,6 +13,6 @@ class UnshopCode extends Model
     public $timestamps = false; 
     protected $primaryKey = 'id'; //主鍵，Model會另外自動加入id
     protected $fillable = [
-        'types','code','name','author','cname','is_delete','is_display',
+        'types','code','name','cname','is_delete','is_display',
     ];
 }
